@@ -4,10 +4,11 @@ __pycache__/
 
 # C extensions
 *.so
-
+.DS_STORE
 # Distribution / packaging
 .Python
 env/
+venv/
 bin/
 build/
 develop-eggs/

@@ -1,0 +1,343 @@
+{
+    "basePath": "/",
+    "consumes": [
+        "application/json"
+    ],
+    "definitions": {
+        "User": {
+            "required": [
+                "emailAddress",
+                "username"
+            ],
+            "properties": {
+                "userId": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "emailAddress": {
+                    "type": "string"
+                },
+                "isEnabled": {
+                    "type": "boolean"
+                },
+                "phoneNumber": {
+                    "type": "string"
+                },
+                "userMetadata": {
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "ProblemDetails": {
+            "properties": {
+                "status": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "instance": {
+                    "type": "string"
+                },
+                "headers": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "PagedUserList": {
+            "properties": {
+                "pageSize": {
+                    "type": "integer"
+                },
+                "pageNumber": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/User"
+                    }
+                }
+            },
+            "type": "object"
+        },
+        "PatchUser": {
+            "properties": {
+                "isEnabled": {
+                    "type": "boolean"
+                }
+            },
+            "type": "object"
+        }
+    },
+    "info": {
+        "title": "API",
+        "version": "1.0"
+    },
+    "paths": {
+        "/user": {
+            "get": {
+                "responses": {
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "No permission -- see authorization schemes",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "schema": {
+                            "$ref": "#/definitions/PagedUserList"
+                        }
+                    }
+                },
+                "operationId": "get_user_actions",
+                "parameters": [
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "type": "integer",
+                        "required": true,
+                        "default": 10
+                    },
+                    {
+                        "name": "page_number",
+                        "in": "query",
+                        "type": "integer",
+                        "required": true,
+                        "default": 1
+                    },
+                    {
+                        "name": "search_text",
+                        "in": "query",
+                        "type": "string"
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "user"
+                ]
+            },
+            "post": {
+                "responses": {
+                    "400": {
+                        "description": "Bad request syntax or unsupported method",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "No permission -- see authorization schemes",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                },
+                "operationId": "post_user_actions",
+                "parameters": [
+                    {
+                        "name": "payload",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                ],
+                "tags": [
+                    "user"
+                ]
+            }
+        },
+        "/user/{user_id}": {
+            "parameters": [
+                {
+                    "name": "user_id",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }
+            ],
+            "put": {
+                "responses": {
+                    "404": {
+                        "description": "Nothing matches the given URI",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "No permission -- see authorization schemes",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "204": {
+                        "description": "Request fulfilled, nothing follows"
+                    }
+                },
+                "operationId": "put_user_by_id_actions",
+                "parameters": [
+                    {
+                        "name": "payload",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                ],
+                "tags": [
+                    "user"
+                ]
+            },
+            "patch": {
+                "responses": {
+                    "404": {
+                        "description": "Nothing matches the given URI",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "No permission -- see authorization schemes",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "204": {
+                        "description": "Request fulfilled, nothing follows"
+                    }
+                },
+                "operationId": "patch_user_by_id_actions",
+                "parameters": [
+                    {
+                        "name": "payload",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/PatchUser"
+                        }
+                    }
+                ],
+                "tags": [
+                    "user"
+                ]
+            },
+            "get": {
+                "responses": {
+                    "404": {
+                        "description": "Nothing matches the given URI",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "No permission -- see authorization schemes",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                },
+                "operationId": "get_user_by_id_actions",
+                "tags": [
+                    "user"
+                ]
+            },
+            "delete": {
+                "responses": {
+                    "404": {
+                        "description": "Nothing matches the given URI",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "No permission -- see authorization schemes",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "204": {
+                        "description": "Request fulfilled, nothing follows"
+                    }
+                },
+                "operationId": "delete_user_by_id_actions",
+                "tags": [
+                    "user"
+                ]
+            }
+        }
+    },
+    "produces": [
+        "application/json"
+    ],
+
+    "securityDefinitions": {
+        "apikey": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization"
+        }
+    },
+    "swagger": "2.0",
+    "security": [
+        {
+            "apikey": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "user"
+        }
+    ],
+    "responses": {
+        "ParseError": {
+            "description": "When a mask can't be parsed"
+        },
+        "MaskError": {
+            "description": "When any error occurs on mask"
+        },
+        "Unauthorized": {},
+        "SecurityError": {},
+        "BadRequest": {},
+        "NotFound": {},
+        "InternalServerError": {},
+        "Exception": {}
+    }
+}

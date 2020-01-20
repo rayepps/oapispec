@@ -1,0 +1,213 @@
+{
+    "basePath": "/",
+    "consumes": [
+        "application/json"
+    ],
+    "definitions": {
+        "PagedUserList": {
+            "properties": {
+                "pageNumber": {
+                    "type": "integer"
+                },
+                "pageSize": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "users": {
+                    "items": {
+                        "$ref": "#/definitions/User"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "ProblemDetails": {
+            "properties": {
+                "detail": {
+                    "type": "string"
+                },
+                "headers": {
+                    "type": "string"
+                },
+                "instance": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "User": {
+            "properties": {
+                "emailAddress": {
+                    "type": "string"
+                },
+                "isEnabled": {
+                    "type": "boolean"
+                },
+                "phoneNumber": {
+                    "type": "string"
+                },
+                "userId": {
+                    "type": "string"
+                },
+                "userMetadata": {
+                    "type": "object"
+                },
+                "username": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "emailAddress",
+                "username"
+            ],
+            "type": "object"
+        }
+    },
+    "info": {
+        "description": "The api I made",
+        "title": "Test API",
+        "version": "2.0.0"
+    },
+    "paths": {
+        "/ping": {
+            "GET": {
+                "operationId": "ping",
+                "responses": {
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "401": {
+                        "description": "No permission -- see authorization schemes",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                },
+                "tags": [
+                    "Health Check"
+                ]
+            }
+        },
+        "/user": {
+            "GET": {
+                "operationId": "get_users",
+                "parameters": [
+                    {
+                        "default": 10,
+                        "in": "query",
+                        "name": "page_size",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "default": 1,
+                        "in": "query",
+                        "name": "page_number",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "query",
+                        "name": "search_text",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "sort",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Document created, URL follows",
+                        "schema": {
+                            "$ref": "#/definitions/PagedUserList"
+                        }
+                    },
+                    "401": {
+                        "description": "No permission -- see authorization schemes",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                },
+                "tags": [
+                    "User"
+                ]
+            },
+            "POST": {
+                "operationId": "add_user",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "payload",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "401": {
+                        "description": "No permission -- see authorization schemes",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    }
+                },
+                "tags": [
+                    "User"
+                ]
+            }
+        }
+    },
+    "produces": [
+        "application/json"
+    ],
+    "responses": [],
+    "security": [
+        {
+            "apikey": []
+        }
+    ],
+    "securityDefinitions": {
+        "apikey": {
+            "in": "header",
+            "name": "Authorization",
+            "type": "apiKey"
+        }
+    },
+    "swagger": "2.0",
+    "tags": [
+        {
+            "name": "Health Check"
+        },
+        {
+            "name": "User"
+        },
+        {
+            "name": "User"
+        }
+    ]
+}
