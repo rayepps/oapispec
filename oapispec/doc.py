@@ -1,7 +1,5 @@
 import warnings
 
-import six
-
 from oapispec.core.utils import merge
 
 
@@ -22,8 +20,8 @@ def doc(shortcut=None, **kwargs):
 
 def unshortcut_params_description(data):
     if 'params' in data:
-        for name, description in six.iteritems(data['params']):
-            if isinstance(description, six.string_types):
+        for name, description in data['params'].items():
+            if isinstance(description, str):
                 data['params'][name] = {'description': description}
 
 def handle_deprecations(apidoc):

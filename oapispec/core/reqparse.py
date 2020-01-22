@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import decimal
-import six
 
 from http import HTTPStatus
 from collections import Hashable
@@ -36,7 +35,7 @@ PY_TYPES = {
 
 SPLIT_CHAR = ','
 
-text_type = lambda x: six.text_type(x)  # noqa
+text_type = lambda x: str(x)  # noqa
 
 
 class Argument:

@@ -8,7 +8,6 @@ from collections import OrderedDict
 from collections.abc import Hashable
 from urllib.parse import quote
 
-from six import string_types, iteritems
 from werkzeug.routing import parse_rule
 
 from oapispec import fields
@@ -150,7 +149,7 @@ def extract_path_params(path):
     return params
 
 def _clean_header(header):
-    if isinstance(header, string_types):
+    if isinstance(header, str):
         header = {'description': header}
     typedef = header.get('type', 'string')
     if isinstance(typedef, Hashable) and typedef in PY_TYPES:
@@ -179,7 +178,7 @@ def extract_tags(metadata, handlers):
     by_name = {}
 
     for tag in metadata.tags:
-        if isinstance(tag, string_types):
+        if isinstance(tag, str):
             tag = {'name': tag}
         elif isinstance(tag, (list, tuple)):
             tag = {'name': tag[0], 'description': tag[1]}
@@ -278,7 +277,7 @@ def vendor_fields(apidoc):
     '''
     return dict(
         (k if k.startswith('x-') else 'x-{0}'.format(k), v)
-        for k, v in iteritems(apidoc.get('vendor', {}))
+        for k, v in apidoc.get('vendor', {}).items()
     )
 
 def parameters_for(doc):
@@ -293,7 +292,7 @@ def parameters_for(doc):
 
     params = list(merge(merge(expected_paramaters, doc_params), path_params).values())
 
-    for name, param in iteritems(doc.get('params', {})):
+    for name, param in doc.get('params', {}).items():
 
         param['name'] = name
 
@@ -320,9 +319,9 @@ def parameters_for(doc):
 def responses_for(apidoc):
     responses = {}
     if 'responses' in apidoc:
-        for code, response in iteritems(apidoc['responses']):
+        for code, response in apidoc['responses'].items():
             code = str(code)
-            if isinstance(response, string_types):
+            if isinstance(response, str):
                 description = response
                 model = None
                 kwargs = {}
@@ -360,8 +359,8 @@ def process_headers(response, apidoc, headers=None):
         response['headers'] = dict(
             (k, _clean_header(v)) for k, v
             in itertools.chain(
-                iteritems(apidoc.get('headers', {})),
-                iteritems(headers or {})
+                apidoc.get('headers', {}).items(),
+                (headers or {}).items()
             )
         )
     return response
@@ -369,7 +368,7 @@ def process_headers(response, apidoc, headers=None):
 def serialize_definitions(registered_models):
     return dict(
         (name, model.__schema__)
-        for name, model in iteritems(registered_models)
+        for name, model in registered_models.items()
     )
 
 def serialize_schema(model):
@@ -384,7 +383,7 @@ def serialize_schema(model):
         # register_model(model)
         return ref(model)
 
-    if isinstance(model, string_types):
+    if isinstance(model, str):
         # register_model(model)
         return ref(model)
 
@@ -429,11 +428,11 @@ def security_requirements(value):
     return []
 
 def security_requirement(value):
-    if isinstance(value, (string_types)):
+    if isinstance(value, (str)):
         return {value: []}
     if isinstance(value, dict):
         return dict(
             (k, v if isinstance(v, (list, tuple)) else [v])
-            for k, v in iteritems(value)
+            for k, v in value.items()
         )
     return None

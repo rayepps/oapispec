@@ -2,7 +2,6 @@
 
 from collections import OrderedDict
 from functools import wraps
-from six import iteritems
 
 from oapispec.core.mask import Mask, apply as apply_mask
 from oapispec.core.utils import unpack
@@ -174,7 +173,7 @@ def _marshal(data, fields, envelope=None, skip_none=False, mask=None, ordered=Fa
         (k, marshal(data, v, skip_none=skip_none, ordered=ordered))
         if isinstance(v, dict)
         else __format_field(k, v)
-        for k, v in iteritems(fields)
+        for k, v in fields.items()
     )
 
     if skip_none:
