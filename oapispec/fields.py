@@ -38,18 +38,16 @@ def get_value(key, obj, default=None):
     '''Helper for pulling a keyed value off various types of objects'''
     if isinstance(key, int):
         return _get_value_for_key(key, obj, default)
-    elif callable(key):
+    if callable(key):
         return key(obj)
-    else:
-        return _get_value_for_keys(key.split('.'), obj, default)
+    return _get_value_for_keys(key.split('.'), obj, default)
 
 
 def _get_value_for_keys(keys, obj, default):
     if len(keys) == 1:
         return _get_value_for_key(keys[0], obj, default)
-    else:
-        return _get_value_for_keys(
-            keys[1:], _get_value_for_key(keys[0], obj, default), default)
+    return _get_value_for_keys(
+        keys[1:], _get_value_for_key(keys[0], obj, default), default)
 
 
 def _get_value_for_key(key, obj, default):
@@ -78,7 +76,7 @@ def to_marshallable_type(obj):
     return dict(obj.__dict__)
 
 
-class Raw(object):
+class Raw:
     '''
     Raw provides a base field class from which others should extend. It
     applies no formatting by default, and should only be used in cases where
@@ -105,7 +103,7 @@ class Raw(object):
     __schema_example__ = None
 
     def __init__(self, default=None, attribute=None, title=None, description=None,
-                 required=None, readonly=None, example=None, mask=None, **kwargs):
+                 required=None, readonly=None, example=None, mask=None):
         self.attribute = attribute
         self.default = default
         self.title = title
@@ -132,7 +130,7 @@ class Raw(object):
         '''
         return value
 
-    def output(self, key, obj, **kwargs):
+    def output(self, key, obj, ordered=False):
         '''
         Pulls the value for the given key from the object, applies the
         field's formatting and returns the result. If the key is not found
@@ -206,12 +204,12 @@ class Nested(Raw):
     def nested(self):
         return getattr(self.model, 'resolved', self.model)
 
-    def output(self, key, obj, ordered=False, **kwargs):
+    def output(self, key, obj, ordered=False):
         value = get_value(key if self.attribute is None else self.attribute, obj)
         if value is None:
             if self.allow_null:
                 return None
-            elif self.default is not None:
+            if self.default is not None:
                 return self.default
 
         return marshal(value, self.nested, skip_none=self.skip_none, ordered=ordered)
@@ -281,7 +279,7 @@ class List(Raw):
             for idx, val in enumerate(value)
         ]
 
-    def output(self, key, data, ordered=False, **kwargs):
+    def output(self, key, data, ordered=False):
         value = get_value(key if self.attribute is None else self.attribute, data)
         # we cannot really test for external dict behavior
         if is_indexable_but_not_string(value) and not isinstance(value, dict):
@@ -309,7 +307,7 @@ class List(Raw):
         return self.__class__(model, **kwargs)
 
 
-class StringMixin(object):
+class StringMixin:
     __schema_type__ = 'string'
 
     def __init__(self, *args, **kwargs):
@@ -326,7 +324,7 @@ class StringMixin(object):
         return schema
 
 
-class MinMaxMixin(object):
+class MinMaxMixin:
     def __init__(self, *args, **kwargs):
         self.minimum = kwargs.pop('min', None)
         self.exclusiveMinimum = kwargs.pop('exclusiveMin', None)
@@ -476,27 +474,25 @@ class DateTime(MinMaxMixin, Raw):
     def parse(self, value):
         if value is None:
             return None
-        elif isinstance(value, string_types):
+        if isinstance(value, string_types):
             parser = datetime_from_iso8601 if self.dt_format == 'iso8601' else datetime_from_rfc822
             return parser(value)
-        elif isinstance(value, datetime):
+        if isinstance(value, datetime):
             return value
-        elif isinstance(value, date):
+        if isinstance(value, date):
             return datetime(value.year, value.month, value.day)
-        else:
-            raise ValueError('Unsupported DateTime format')
+        raise ValueError('Unsupported DateTime format')
 
     def format(self, value):
         try:
             value = self.parse(value)
             if self.dt_format == 'iso8601':
                 return self.format_iso8601(value)
-            elif self.dt_format == 'rfc822':
+            if self.dt_format == 'rfc822':
                 return self.format_rfc822(value)
-            else:
-                raise MarshallingError(
-                    'Unsupported date format %s' % self.dt_format
-                )
+            raise MarshallingError(
+                'Unsupported date format %s' % self.dt_format
+            )
         except (AttributeError, ValueError) as e:
             raise MarshallingError(e)
 
@@ -545,44 +541,13 @@ class Date(DateTime):
     def parse(self, value):
         if value is None:
             return None
-        elif isinstance(value, string_types):
+        if isinstance(value, string_types):
             return date_from_iso8601(value)
-        elif isinstance(value, datetime):
+        if isinstance(value, datetime):
             return value.date()
-        elif isinstance(value, date):
+        if isinstance(value, date):
             return value
-        else:
-            raise ValueError('Unsupported Date format')
-
-
-class Url(StringMixin, Raw):
-    '''
-    A string representation of a Url
-
-    :param str endpoint: Endpoint name. If endpoint is ``None``, ``request.endpoint`` is used instead
-    :param bool absolute: If ``True``, ensures that the generated urls will have the hostname included
-    :param str scheme: URL scheme specifier (e.g. ``http``, ``https``)
-    '''
-    def __init__(self, endpoint=None, absolute=False, scheme=None, **kwargs):
-        super(Url, self).__init__(**kwargs)
-        self.endpoint = endpoint
-        self.absolute = absolute
-        self.scheme = scheme
-
-    def output(self, key, obj, **kwargs):
-        try:
-            data = to_marshallable_type(obj)
-            endpoint = self.endpoint if self.endpoint is not None else "TODO-ray request" # request.endpoint
-            # o = urlparse(url_for(endpoint, _external=self.absolute, **data))
-            o_path = "TODO-ray path"
-            o_netloc = "TODO-ray netloc"
-            o_scheme = "TODO-ray scheme"
-            if self.absolute:
-                scheme = self.scheme if self.scheme is not None else o_scheme
-                return urlunparse((scheme, o_netloc, o_path, "", "", ""))
-            return urlunparse(("", "", o_path, "", "", ""))
-        except TypeError as te:
-            raise MarshallingError(te)
+        raise ValueError('Unsupported Date format')
 
 
 class FormattedString(StringMixin, Raw):
@@ -609,7 +574,7 @@ class FormattedString(StringMixin, Raw):
         super(FormattedString, self).__init__(**kwargs)
         self.src_str = text_type(src_str)
 
-    def output(self, key, obj, **kwargs):
+    def output(self, key, obj, ordered=False):
         try:
             data = to_marshallable_type(obj)
             return self.src_str.format(**data)
@@ -627,7 +592,7 @@ class ClassName(String):
         super(ClassName, self).__init__(**kwargs)
         self.dash = dash
 
-    def output(self, key, obj, **kwargs):
+    def output(self, key, obj, ordered=False):
         classname = obj.__class__.__name__
         if classname == 'dict':
             return 'object'
@@ -658,13 +623,13 @@ class Polymorph(Nested):
         parent = self.resolve_ancestor(list(itervalues(mapping)))
         super(Polymorph, self).__init__(parent, allow_null=not required, **kwargs)
 
-    def output(self, key, obj, ordered=False, **kwargs):
+    def output(self, key, obj, ordered=False):
         # Copied from upstream NestedField
         value = get_value(key if self.attribute is None else self.attribute, obj)
         if value is None:
             if self.allow_null:
                 return None
-            elif self.default is not None:
+            if self.default is not None:
                 return self.default
 
         # Handle mappings
@@ -675,10 +640,9 @@ class Polymorph(Nested):
 
         if len(candidates) <= 0:
             raise ValueError('Unknown class: ' + value.__class__.__name__)
-        elif len(candidates) > 1:
+        if len(candidates) > 1:
             raise ValueError('Unable to determine a candidate for: ' + value.__class__.__name__)
-        else:
-            return marshal(value, candidates[0].resolved, mask=self.mask, ordered=ordered)
+        return marshal(value, candidates[0].resolved, mask=self.mask, ordered=ordered)
 
     def resolve_ancestor(self, models):
         '''

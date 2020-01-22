@@ -1,8 +1,7 @@
 
 from oapispec.swagger import Swagger
-from oapispec.core.utils import immutable, default_id
+from oapispec.core.utils import immutable
 
-# Maps to `namespace.py`
 
 def schema(handlers=None, metadata=None):
 
@@ -58,8 +57,3 @@ def meta(
         base_path=base_path,
         representations=representations or ['application/json']
     ))
-
-
-
-
-# Done

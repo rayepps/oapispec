@@ -39,7 +39,7 @@ SPLIT_CHAR = ','
 text_type = lambda x: six.text_type(x)  # noqa
 
 
-class Argument(object):
+class Argument:
     '''
     :param name: Either a name or a list of option strings, e.g. foo or -f, --foo.
     :param default: The value produced if the argument is absent from the request.
@@ -118,7 +118,7 @@ class Argument(object):
         return param
 
 
-class RequestParser(object):
+class RequestParser:
     '''
     Enables adding and parsing of multiple arguments in the context of a single request.
     Ex::

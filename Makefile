@@ -15,10 +15,6 @@ create-dist:
 upload-dist:
 	twine upload dist/*
 
-.PHONY: lint
-lint:
-	pylint oapispec
-
 .PHONY: check
 check: lint test
 	@echo "🎉 Check passed 👍"

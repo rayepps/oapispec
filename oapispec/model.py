@@ -2,8 +2,8 @@ import copy
 import re
 import warnings
 
-from http import HTTPStatus
-from collections import OrderedDict, MutableMapping
+from collections import OrderedDict
+from collections.abc import MutableMapping
 from six import iteritems, itervalues
 from werkzeug.utils import cached_property
 
@@ -12,7 +12,6 @@ from jsonschema.exceptions import ValidationError
 
 from oapispec.core.mask import Mask
 from oapispec.core.utils import not_none
-from oapispec.core import errors
 
 
 RE_REQUIRED = re.compile(r'u?\'(?P<name>.*)\' is a required property', re.I | re.U)
@@ -22,6 +21,13 @@ def instance(cls):
         return cls()
     return cls
 
+def _format_error(error):
+    path = list(error.path)
+    if error.validator == 'required':
+        name = RE_REQUIRED.match(error.message).group('name')
+        path.append(name)
+    key = '.'.join(str(p) for p in path)
+    return key, error.message
 
 class ModelBase:
     '''
@@ -55,11 +61,10 @@ class ModelBase:
     def get_parent(self, name):
         if self.name == name:
             return self
-        else:
-            for parent in self.__parents__:
-                found = parent.get_parent(name)
-                if found:
-                    return found
+        for parent in self.__parents__:
+            found = parent.get_parent(name)
+            if found:
+                return found
         raise ValueError('Parent ' + name + ' not found')
 
     @property
@@ -75,8 +80,7 @@ class ModelBase:
             return {
                 'allOf': refs + [schema]
             }
-        else:
-            return schema
+        return schema
 
     @classmethod
     def inherit(cls, name, *parents):
@@ -94,15 +98,8 @@ class ModelBase:
         try:
             validator.validate(data)
         except ValidationError:
-            return dict(self.format_error(e) for e in validator.iter_errors(data))
-
-    def format_error(self, error):
-        path = list(error.path)
-        if error.validator == 'required':
-            name = RE_REQUIRED.match(error.message).group('name')
-            path.append(name)
-        key = '.'.join(str(p) for p in path)
-        return key, error.message
+            return dict(_format_error(e) for e in validator.iter_errors(data))
+        return None
 
     def __unicode__(self):
         return 'Model({name},{{{fields}}})'.format(name=self.name, fields=','.join(self.keys()))
@@ -170,7 +167,7 @@ class RawModel(ModelBase):
         if len(candidates) > 1:
             raise ValueError('There can only be one discriminator by schema')
         # Ensure discriminator always output the model name
-        elif len(candidates) == 1:
+        if len(candidates) == 1:
             candidates[0].default = self.name
 
         return resolved
@@ -187,8 +184,7 @@ class RawModel(ModelBase):
         warnings.warn('extend is is deprecated, use clone instead', DeprecationWarning, stacklevel=2)
         if isinstance(fields, (list, tuple)):
             return self.clone(name, *fields)
-        else:
-            return self.clone(name, fields)
+        return self.clone(name, fields)
 
     @classmethod
     def clone(cls, name, *parents):
@@ -227,7 +223,6 @@ class Model(RawModel, dict, MutableMapping):
     :param str name: The model public name
     :param str mask: an optional default model mask
     '''
-    pass
 
 
 class OrderedModel(RawModel, OrderedDict, MutableMapping):

@@ -3,11 +3,12 @@
 import itertools
 import re
 from http import HTTPStatus
+from inspect import isclass
+from collections import OrderedDict
+from collections.abc import Hashable
+from urllib.parse import quote
 
-from inspect import isclass, getdoc
-from collections import OrderedDict, Hashable
-from six import string_types, itervalues, iteritems, iterkeys
-
+from six import string_types, iteritems
 from werkzeug.routing import parse_rule
 
 from oapispec import fields
@@ -15,7 +16,7 @@ from oapispec.model import ModelBase
 from oapispec.core.reqparse import RequestParser
 from oapispec.core.utils import merge, not_none, not_none_sorted
 
-from urllib.parse import quote
+
 
 #: Maps Flask/Werkzeug rooting types to Swagger ones
 PATH_TYPES = {
@@ -46,8 +47,6 @@ class Swagger:
     A Swagger documentation wrapper for an API instance.
     '''
     def __init__(self, metadata, handlers):
-        # TODO-ray: properly rename
-        # api -> schema & metadata
         self.metadata = metadata
         self.handlers = handlers
 
@@ -132,7 +131,7 @@ def extract_path_params(path):
     Extract Flask-style parameters from an URL pattern as Swagger ones.
     '''
     params = OrderedDict()
-    for converter, arguments, variable in parse_rule(path):
+    for converter, _, variable in parse_rule(path):
         if not converter:
             continue
         param = {
@@ -172,8 +171,7 @@ def is_hidden(resource, route_doc=None):
     '''
     if route_doc is False:
         return True
-    else:
-        return hasattr(resource, "__apidoc__") and resource.__apidoc__ is False
+    return hasattr(resource, "__apidoc__") and resource.__apidoc__ is False
 
 def extract_tags(metadata, handlers):
 
@@ -320,7 +318,6 @@ def parameters_for(doc):
     return params
 
 def responses_for(apidoc):
-    # TODO: simplify/refactor responses/model handling
     responses = {}
     if 'responses' in apidoc:
         for code, response in iteritems(apidoc['responses']):
@@ -383,21 +380,21 @@ def serialize_schema(model):
             'items': serialize_schema(model),
         }
 
-    elif isinstance(model, ModelBase):
+    if isinstance(model, ModelBase):
         # register_model(model)
         return ref(model)
 
-    elif isinstance(model, string_types):
+    if isinstance(model, string_types):
         # register_model(model)
         return ref(model)
 
-    elif isclass(model) and issubclass(model, fields.Raw):
+    if isclass(model) and issubclass(model, fields.Raw):
         return serialize_schema(model())
 
-    elif isinstance(model, fields.Raw):
+    if isinstance(model, fields.Raw):
         return model.__schema__
 
-    elif isinstance(model, (type, type(None))) and model in PY_TYPES:
+    if isinstance(model, (type, type(None))) and model in PY_TYPES:
         return {'type': PY_TYPES[model]}
 
     raise ValueError('Model {0} not registered'.format(model))
@@ -409,7 +406,7 @@ def find_models(handlers):
         for expect in apidoc.get('expect', []):
             if isinstance(expect, ModelBase):
                 models[expect.name] = expect
-        for code, (description, model, kwargs) in apidoc.get('responses', {}).items():
+        for _, (_, model, _) in apidoc.get('responses', {}).items():
             if isinstance(model, ModelBase):
                 models[model.name] = model
     return models
@@ -426,19 +423,17 @@ def security_for(apidoc):
 def security_requirements(value):
     if isinstance(value, (list, tuple)):
         return [security_requirement(v) for v in value]
-    elif value:
+    if value:
         requirement = security_requirement(value)
         return [requirement] if requirement else None
-    else:
-        return []
+    return []
 
 def security_requirement(value):
     if isinstance(value, (string_types)):
         return {value: []}
-    elif isinstance(value, dict):
+    if isinstance(value, dict):
         return dict(
             (k, v if isinstance(v, (list, tuple)) else [v])
             for k, v in iteritems(value)
         )
-    else:
-        return None
+    return None

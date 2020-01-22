@@ -189,7 +189,7 @@ def _marshal(data, fields, envelope=None, skip_none=False, mask=None, ordered=Fa
     return out, has_wildcards['present']
 
 
-class marshal_with(object):
+class marshal_with:
     """A decorator that apply marshalling to the return values of your methods.
 
     >>> from flask_restx import fields, marshal_with
@@ -251,7 +251,7 @@ class marshal_with(object):
         return wrapper
 
 
-class marshal_with_field(object):
+class marshal_with_field:
     """
     A decorator that formats the return values of your methods with a single field.
 

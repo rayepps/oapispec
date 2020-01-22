@@ -95,7 +95,7 @@ def ip(value):
 ip.__schema__ = {'type': 'string', 'format': 'ip'}
 
 
-class URL(object):
+class URL:
     '''
     Validate an URL.
 
@@ -199,7 +199,7 @@ class URL(object):
 url = URL(ip=True, auth=True, port=True, local=True, schemes=('http', 'https', 'ftp', 'ftps'))
 
 
-class email(object):
+class email:
     '''
     Validate an email.
 
@@ -263,7 +263,7 @@ class email(object):
         }
 
 
-class regex(object):
+class regex:
     '''
     Validate a string based on a regular expression.
 
@@ -458,7 +458,7 @@ def positive(value, argument='argument'):
 positive.__schema__ = {'type': 'integer', 'minimum': 0, 'exclusiveMinimum': True}
 
 
-class int_range(object):
+class int_range:
     '''Restrict input to an integer in a range (inclusive)'''
     def __init__(self, low, high, argument='argument'):
         self.low = low

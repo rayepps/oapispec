@@ -570,15 +570,6 @@ class TestFormatedStringField(StringTestMixin, BaseFieldTestMixin, FieldTestCase
         field = fields.FormattedString('/foo/{0[account_sid]}/{0[sid]}/')
         self.assert_field_raises(field, (3, 4))
 
-
-class TestUrlField(StringTestMixin, BaseFieldTestMixin, FieldTestCase):
-    field_class = partial(fields.Url, 'endpoint')
-
-    def test_defaults(self):
-        field = fields.Url('endpoint')
-        assert not field.required
-        assert field.__schema__ == {'type': 'string'}
-
 class TestListField(BaseFieldTestMixin, FieldTestCase):
     field_class = partial(fields.List, fields.String)
 

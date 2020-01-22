@@ -1,11 +1,6 @@
-import inspect
 import warnings
-import logging
-from collections import namedtuple
 
 import six
-
-from http import HTTPStatus
 
 from oapispec.core.utils import merge
 
@@ -46,7 +41,7 @@ def _build_doc(apidoc):
     handle_deprecations(apidoc)
     return apidoc
 
-def route(endpoint, **kwargs):
+def route(endpoint):
     '''
     A decorator to route resources.
     '''
@@ -56,7 +51,7 @@ def hide(func):
     '''A decorator to hide a resource or a method from specifications'''
     return doc(False)(func)
 
-def expect(*inputs, **kwargs):
+def expect(*inputs):
     '''
     A decorator to Specify the expected input model
 
@@ -64,12 +59,9 @@ def expect(*inputs, **kwargs):
     :param bool validate: whether to perform validation or not
 
     '''
-    expect = []
     params = {
-        'expect': expect
+        'expect': list(inputs)
     }
-    for param in inputs:
-        expect.append(param)
     return doc(**params)
 
 def param(name, description=None, _in='query', **kwargs):
@@ -80,10 +72,10 @@ def param(name, description=None, _in='query', **kwargs):
     :param str description: a small description
     :param str _in: the parameter location `(query|header|formData|body|cookie)`
     '''
-    param = kwargs
-    param['in'] = _in
-    param['description'] = description
-    return doc(params={name: param})
+    params = kwargs
+    params['in'] = _in
+    params['description'] = description
+    return doc(params={name: params})
 
 def response(code, description, model=None, **kwargs):
     '''
@@ -104,9 +96,12 @@ def header(name, description=None, **kwargs):
     :param str description: a description about the header
 
     '''
-    header = {'description': description}
-    header.update(kwargs)
-    return doc(headers={name: header})
+    return doc(headers={
+        name: {
+            'description': description
+        },
+        **kwargs
+    })
 
 def produces(mimetypes):
     '''A decorator to specify the MIME types the API can produce'''
