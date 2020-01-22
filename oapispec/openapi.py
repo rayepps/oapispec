@@ -41,7 +41,7 @@ DEFAULT_RESPONSE_DESCRIPTION = 'Success'
 DEFAULT_RESPONSE = {'description': DEFAULT_RESPONSE_DESCRIPTION}
 
 
-class Swagger:
+class OpenApi:
     '''
     A Swagger documentation wrapper for an API instance.
     '''
@@ -50,10 +50,10 @@ class Swagger:
         self.handlers = handlers
 
     def as_dict(self):
-        return create_swagger_dict(self.metadata, self.handlers)
+        return create_openapi_spec_dict(self.metadata, self.handlers)
 
 
-def create_swagger_dict(metadata, handlers):
+def create_openapi_spec_dict(metadata, handlers):
     '''
     Output the specification as a serializable ``dict``.
 

@@ -1,5 +1,5 @@
 
-from oapispec.swagger import Swagger
+from oapispec.openapi import OpenApi
 from oapispec.core.utils import immutable
 
 
@@ -13,7 +13,7 @@ def schema(handlers=None, metadata=None):
         return schema(handlers=[*handlers, handler], metadata=metadata)
 
     def generate():
-        return Swagger(metadata, handlers).as_dict()
+        return OpenApi(metadata, handlers).as_dict()
 
     return immutable(dict(
         register=register,
