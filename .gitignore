@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 
+debug.json
+
 # C extensions
 *.so
 .DS_STORE

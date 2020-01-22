@@ -11,8 +11,8 @@ from copy import deepcopy
 from werkzeug.datastructures import MultiDict, FileStorage
 from werkzeug import exceptions
 
-from .errors import SpecsError
-from ..model import Model
+from oapispec.core.errors import SpecsError
+from oapispec.model import Model
 
 
 #: Maps Flask-RESTX RequestParser locations to Swagger ones

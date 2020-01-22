@@ -14,10 +14,10 @@ from six.moves.urllib.parse import urlparse, urlunparse
 
 from werkzeug.utils import cached_property
 
-from .core.inputs import date_from_iso8601, datetime_from_iso8601, datetime_from_rfc822, boolean
-from .core.errors import RestError
-from .core.marshalling import marshal
-from .core.utils import camel_to_dash, not_none
+from oapispec.core.inputs import date_from_iso8601, datetime_from_iso8601, datetime_from_rfc822, boolean
+from oapispec.core.errors import RestError
+from oapispec.core.marshalling import marshal
+from oapispec.core.utils import camel_to_dash, not_none
 
 
 class MarshallingError(RestError):

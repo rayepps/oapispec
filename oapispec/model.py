@@ -10,9 +10,9 @@ from werkzeug.utils import cached_property
 from jsonschema import Draft4Validator
 from jsonschema.exceptions import ValidationError
 
-from .core.mask import Mask
-from .core.utils import not_none
-from .core import errors
+from oapispec.core.mask import Mask
+from oapispec.core.utils import not_none
+from oapispec.core import errors
 
 
 RE_REQUIRED = re.compile(r'u?\'(?P<name>.*)\' is a required property', re.I | re.U)

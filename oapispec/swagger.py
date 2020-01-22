@@ -10,10 +10,10 @@ from six import string_types, itervalues, iteritems, iterkeys
 
 from werkzeug.routing import parse_rule
 
-from . import fields
-from .model import ModelBase
-from .core.reqparse import RequestParser
-from .core.utils import merge, not_none, not_none_sorted
+from oapispec import fields
+from oapispec.model import ModelBase
+from oapispec.core.reqparse import RequestParser
+from oapispec.core.utils import merge, not_none, not_none_sorted
 
 from urllib.parse import quote
 

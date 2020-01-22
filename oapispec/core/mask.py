@@ -7,7 +7,7 @@ import six
 from collections import OrderedDict
 from inspect import isclass
 
-from .errors import RestError
+from oapispec.core.errors import RestError
 
 log = logging.getLogger(__name__)
 
@@ -107,7 +107,7 @@ class Mask(OrderedDict):
         :raises MaskError: when unable to apply the mask
 
         '''
-        from .. import fields
+        from oapispec import fields
         # Should handle lists
         if isinstance(data, (list, tuple, set)):
             return [self.apply(d) for d in data]

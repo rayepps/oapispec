@@ -1,6 +1,6 @@
 
-from .swagger import Swagger
-from .core.utils import immutable, default_id
+from oapispec.swagger import Swagger
+from oapispec.core.utils import immutable, default_id
 
 # Maps to `namespace.py`
 

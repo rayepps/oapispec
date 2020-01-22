@@ -1,11 +1,11 @@
 
-import swaggerf as swag
+import oapispec as oapi
 
 def test_model_validate_succeedes():
 
-    user_model = swag.model.Model('User', {
-        'user_id': swag.fields.String,
-        'username': swag.fields.String(required=True),
+    user_model = oapi.model.Model('User', {
+        'user_id': oapi.fields.String,
+        'username': oapi.fields.String(required=True),
     })
 
     result = user_model.validate({
@@ -17,9 +17,9 @@ def test_model_validate_succeedes():
 
 def test_model_returns_error():
 
-    user_model = swag.model.Model('User', {
-        'user_id': swag.fields.String,
-        'username': swag.fields.String(required=True),
+    user_model = oapi.model.Model('User', {
+        'user_id': oapi.fields.String,
+        'username': oapi.fields.String(required=True),
     })
 
     result = user_model.validate({

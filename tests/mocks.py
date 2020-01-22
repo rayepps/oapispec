@@ -1,9 +1,9 @@
 from http import HTTPStatus
 
-import swaggerf as swag
+import oapispec as oapi
 
 
-schema = swag.schema(metadata=dict(
+schema = oapi.schema(metadata=dict(
     version='2.0.0',
     title='Test API',
     description='The api I made',
@@ -17,61 +17,61 @@ schema = swag.schema(metadata=dict(
     }
 ))
 
-user_model = swag.model.Model('User', {
-    'userId': swag.fields.String,
-    'username': swag.fields.String(required=True),
-    'emailAddress': swag.fields.String(required=True),
-    'isEnabled': swag.fields.Boolean,
-    'phoneNumber': swag.fields.String,
-    'userMetadata': swag.fields.Raw
+user_model = oapi.model.Model('User', {
+    'userId': oapi.fields.String,
+    'username': oapi.fields.String(required=True),
+    'emailAddress': oapi.fields.String(required=True),
+    'isEnabled': oapi.fields.Boolean,
+    'phoneNumber': oapi.fields.String,
+    'userMetadata': oapi.fields.Raw
 })
 
-problem_details_model = swag.model.Model('ProblemDetails', {
-    'status': swag.fields.Integer,
-    'title': swag.fields.String,
-    'detail': swag.fields.String,
-    'type': swag.fields.String,
-    'instance': swag.fields.String,
-    'headers': swag.fields.String
+problem_details_model = oapi.model.Model('ProblemDetails', {
+    'status': oapi.fields.Integer,
+    'title': oapi.fields.String,
+    'detail': oapi.fields.String,
+    'type': oapi.fields.String,
+    'instance': oapi.fields.String,
+    'headers': oapi.fields.String
 })
 
-paged_user_model = swag.model.Model('PagedUserList', {
-    'pageSize': swag.fields.Integer,
-    'pageNumber': swag.fields.Integer,
-    'total': swag.fields.Integer,
-    'users': swag.fields.List(swag.fields.Nested(user_model))
+paged_user_model = oapi.model.Model('PagedUserList', {
+    'pageSize': oapi.fields.Integer,
+    'pageNumber': oapi.fields.Integer,
+    'total': oapi.fields.Integer,
+    'users': oapi.fields.List(oapi.fields.Nested(user_model))
 })
 
-search_arg_parser = swag.parser()
+search_arg_parser = oapi.parser()
 search_arg_parser.add_argument('page_size', type=int, default=10, required=True, location='args')
 search_arg_parser.add_argument('page_number', type=int, default=1, required=True, location='args')
 search_arg_parser.add_argument('search_text', type=str, location='args')
 search_arg_parser.add_argument('sort', type=str, location='args')
 
-@swag.doc.namespace('Health Check')
-@swag.doc.route('/ping')
-@swag.doc.method('GET')
-@swag.doc.response(HTTPStatus.CREATED.value, HTTPStatus.CREATED.description, user_model)
-@swag.doc.response(HTTPStatus.UNAUTHORIZED.value, HTTPStatus.UNAUTHORIZED.description, problem_details_model)
+@oapi.doc.namespace('Health Check')
+@oapi.doc.route('/ping')
+@oapi.doc.method('GET')
+@oapi.doc.response(HTTPStatus.CREATED.value, HTTPStatus.CREATED.description, user_model)
+@oapi.doc.response(HTTPStatus.UNAUTHORIZED.value, HTTPStatus.UNAUTHORIZED.description, problem_details_model)
 def ping():
     pass
 
-@swag.doc.namespace('User')
-@swag.doc.route('/user')
-@swag.doc.method('POST')
-@swag.doc.response(HTTPStatus.CREATED.value, HTTPStatus.CREATED.description, user_model)
-@swag.doc.response(HTTPStatus.UNAUTHORIZED.value, HTTPStatus.UNAUTHORIZED.description, problem_details_model)
-@swag.doc.expect(user_model)
+@oapi.doc.namespace('User')
+@oapi.doc.route('/user')
+@oapi.doc.method('POST')
+@oapi.doc.response(HTTPStatus.CREATED.value, HTTPStatus.CREATED.description, user_model)
+@oapi.doc.response(HTTPStatus.UNAUTHORIZED.value, HTTPStatus.UNAUTHORIZED.description, problem_details_model)
+@oapi.doc.expect(user_model)
 def add_user():
     pass
 
-@swag.doc.namespace('User')
-@swag.doc.route('/user')
-@swag.doc.method('GET')
-@swag.doc.response(HTTPStatus.OK.value, HTTPStatus.CREATED.description, paged_user_model)
-@swag.doc.response(HTTPStatus.UNAUTHORIZED.value, HTTPStatus.UNAUTHORIZED.description, problem_details_model)
-@swag.doc.expect(search_arg_parser)
-@swag.doc.doc(args=search_arg_parser)
+@oapi.doc.namespace('User')
+@oapi.doc.route('/user')
+@oapi.doc.method('GET')
+@oapi.doc.response(HTTPStatus.OK.value, HTTPStatus.CREATED.description, paged_user_model)
+@oapi.doc.response(HTTPStatus.UNAUTHORIZED.value, HTTPStatus.UNAUTHORIZED.description, problem_details_model)
+@oapi.doc.expect(search_arg_parser)
+@oapi.doc.doc(args=search_arg_parser)
 def get_users():
     pass
 

@@ -1,8 +1,8 @@
 
 import pytest
 
-from swaggerf.core.marshalling import marshal, marshal_with, marshal_with_field
-from swaggerf import fields
+from oapispec.core.marshalling import marshal, marshal_with, marshal_with_field
+from oapispec import fields
 
 from collections import OrderedDict
 

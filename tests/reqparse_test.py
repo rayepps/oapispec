@@ -8,11 +8,11 @@ from werkzeug.exceptions import BadRequest
 from werkzeug.wrappers import Request
 from werkzeug.datastructures import FileStorage, MultiDict
 
-from swaggerf.model import Model
-from swaggerf import fields
-from swaggerf.core import inputs
-from swaggerf.core.errors import SpecsError
-from swaggerf.core.reqparse import Argument, RequestParser
+from oapispec.model import Model
+from oapispec import fields
+from oapispec.core import inputs
+from oapispec.core.errors import SpecsError
+from oapispec.core.reqparse import Argument, RequestParser
 
 
 class MockRequest:

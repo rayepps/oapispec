@@ -4,8 +4,8 @@ from collections import OrderedDict
 from functools import wraps
 from six import iteritems
 
-from .mask import Mask, apply as apply_mask
-from .utils import unpack
+from oapispec.core.mask import Mask, apply as apply_mask
+from oapispec.core.utils import unpack
 
 
 def make(cls):
@@ -56,7 +56,7 @@ def marshal(data, fields, envelope=None, skip_none=False, mask=None, ordered=Fal
 
     if has_wildcards:
         # ugly local import to avoid dependency loop
-        from ..fields import Wildcard
+        from oapispec.fields import Wildcard
 
         items = []
         keys = []
@@ -148,7 +148,7 @@ def _marshal(data, fields, envelope=None, skip_none=False, mask=None, ordered=Fa
 
     """
     # ugly local import to avoid dependency loop
-    from ..fields import Wildcard
+    from oapispec.fields import Wildcard
 
     mask = mask or getattr(fields, '__mask__', None)
     fields = getattr(fields, 'resolved', fields)

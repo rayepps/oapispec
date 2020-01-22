@@ -3,7 +3,7 @@ import pytest
 
 from tests import utils
 
-from swaggerf import swagger
+from oapispec import swagger
 
 
 def test_swagger_end_to_end_on_mock_schema(mock_schema):

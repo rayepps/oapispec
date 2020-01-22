@@ -7,7 +7,7 @@ from functools import partial
 import pytz
 import pytest
 
-from swaggerf import fields
+from oapispec import fields
 
 
 class FieldTestCase(object):

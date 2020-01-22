@@ -4,10 +4,10 @@ import pytest
 
 from collections import OrderedDict
 
-from swaggerf.core import mask
-from swaggerf.core.mask import Mask
-from swaggerf import fields
-from swaggerf.core.marshalling import marshal
+from oapispec.core import mask
+from oapispec.core.mask import Mask
+from oapispec import fields
+from oapispec.core.marshalling import marshal
 
 
 def assert_data(tested, expected):

@@ -7,7 +7,7 @@ import six
 
 from http import HTTPStatus
 
-from .core.utils import merge
+from oapispec.core.utils import merge
 
 
 def doc(shortcut=None, **kwargs):

@@ -7,7 +7,7 @@ from collections import OrderedDict
 from copy import deepcopy
 from six import iteritems
 
-from .immutable import Immutable
+from oapispec.core.immutable import Immutable
 
 
 FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')

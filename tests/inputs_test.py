@@ -6,7 +6,7 @@ import pytest
 from datetime import date, datetime
 from six import text_type
 
-from swaggerf.core import inputs
+from oapispec.core import inputs
 
 
 class TestIso8601Date(object):

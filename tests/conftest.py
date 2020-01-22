@@ -3,7 +3,7 @@ from http import HTTPStatus
 
 import pytest
 
-import swaggerf as swag
+import oapispec as oapi
 
 from tests.mocks import mock_schema as mock_swagger_schema
 

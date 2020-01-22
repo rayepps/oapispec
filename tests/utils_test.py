@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from swaggerf.core import utils
-from swaggerf.core.utils import immutable
+from oapispec.core import utils
+from oapispec.core.utils import immutable
 
 
 def test_merge_simple_dicts_without_precedence():
