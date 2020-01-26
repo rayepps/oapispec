@@ -310,7 +310,7 @@ class TestRequestParserSchema(object):
 
     def test_models(self):
         todo_fields = Model('Todo', {
-            'task': fields.String(required=True, description='The task details')
+            'task': fields.string(required=True, description='The task details')
         })
         parser = RequestParser()
         parser.add_argument('todo', type=todo_fields)

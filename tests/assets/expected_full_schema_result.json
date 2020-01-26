@@ -1,0 +1,222 @@
+{
+    "swagger": "2.0",
+    "basePath": "/",
+    "paths": {
+        "/ping": {
+            "get": {
+                "responses": {
+                    "401": {
+                        "description": "No permission -- see authorization schemes",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                },
+                "operationId": "ping",
+                "tags": [
+                    "Health Check"
+                ]
+            }
+        },
+        "/user": {
+            "post": {
+                "responses": {
+                    "401": {
+                        "description": "No permission -- see authorization schemes",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "201": {
+                        "description": "Document created, URL follows",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                },
+                "operationId": "add_user",
+                "parameters": [
+                    {
+                        "name": "payload",
+                        "required": true,
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                ],
+                "tags": [
+                    "User"
+                ]
+            },
+            "get": {
+                "responses": {
+                    "401": {
+                        "description": "No permission -- see authorization schemes",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "200": {
+                        "description": "Document created, URL follows",
+                        "schema": {
+                            "$ref": "#/definitions/PagedUserList"
+                        }
+                    }
+                },
+                "operationId": "get_users",
+                "parameters": [
+                    {
+                        "name": "page_size",
+                        "in": "query",
+                        "type": "integer",
+                        "required": true,
+                        "default": 10
+                    },
+                    {
+                        "name": "page_number",
+                        "in": "query",
+                        "type": "integer",
+                        "required": true,
+                        "default": 1
+                    },
+                    {
+                        "name": "search_text",
+                        "in": "query",
+                        "type": "string"
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "type": "string"
+                    },
+                    {
+                        "name": "refer",
+                        "in": "query",
+                        "type": "string",
+                        "format": "url"
+                    },
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "type": "string",
+                        "format": "email"
+                    }
+                ],
+                "tags": [
+                    "User"
+                ]
+            }
+        }
+    },
+    "info": {
+        "title": "Test API",
+        "version": "2.0.0",
+        "description": "The api I made"
+    },
+    "produces": [
+        "application/json"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "securityDefinitions": {
+        "apikey": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization"
+        }
+    },
+    "security": [
+        {
+            "apikey": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Health Check"
+        },
+        {
+            "name": "User"
+        }
+    ],
+    "definitions": {
+        "ProblemDetails": {
+            "properties": {
+                "status": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "detail": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "instance": {
+                    "type": "string"
+                },
+                "headers": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "User": {
+            "required": [
+                "emailAddress",
+                "username"
+            ],
+            "properties": {
+                "userId": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                },
+                "emailAddress": {
+                    "type": "string"
+                },
+                "isEnabled": {
+                    "type": "boolean"
+                },
+                "phoneNumber": {
+                    "type": "string"
+                },
+                "userMetadata": {
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "PagedUserList": {
+            "properties": {
+                "pageSize": {
+                    "type": "integer"
+                },
+                "pageNumber": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/User"
+                    }
+                }
+            },
+            "type": "object"
+        }
+    },
+    "responses": {}
+}

@@ -1,6 +1,12 @@
+import json, os, subprocess
 from http import HTTPStatus
 
+import pytest
+
+from tests import utils
+
 import oapispec as oapi
+from oapispec.core import inputs
 
 
 schema = oapi.schema(metadata=dict(
@@ -47,6 +53,8 @@ search_arg_parser.add_argument('page_size', type=int, default=10, required=True,
 search_arg_parser.add_argument('page_number', type=int, default=1, required=True, location='args')
 search_arg_parser.add_argument('search_text', type=str, location='args')
 search_arg_parser.add_argument('sort', type=str, location='args')
+search_arg_parser.add_argument('refer', type=inputs.url(), location='args')
+search_arg_parser.add_argument('email', type=inputs.email(), location='args')
 
 @oapi.doc.namespace('Health Check')
 @oapi.doc.route('/ping')
@@ -75,7 +83,33 @@ def add_user():
 def get_users():
     pass
 
-mock_schema = schema\
+full_schema = schema\
     .register(ping)\
     .register(add_user)\
     .register(get_users)
+
+
+def test_full_spec_generation():
+
+    result = full_schema.generate()
+    expected = utils.load_expected_full_schema_result()
+
+    utils.write_result('end_to_end', json.dumps(result, indent=4))
+
+    assert result == expected
+
+def test_full_spec_validation():
+    '''Uses the swagger-cli command line tool to check that the output
+    spec passes as a valid open api specification'''
+
+    result = full_schema.generate()
+    utils.write_result('end_to_end', json.dumps(result, indent=4))
+
+    def rel_path(path):
+        '''Generates a relative path from the current directory'''
+        return os.path.join(os.path.dirname(__file__), f'{path}')
+
+    cmd = ['swagger-cli', 'validate', rel_path('results/end_to_end.json')]
+    cmd_result = subprocess.check_output(cmd)
+
+    assert 'is valid' in str(cmd_result)

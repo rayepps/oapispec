@@ -9,7 +9,6 @@ from werkzeug.utils import cached_property
 from jsonschema import Draft4Validator
 from jsonschema.exceptions import ValidationError
 
-from oapispec.core.mask import Mask
 from oapispec.core.utils import not_none
 
 
@@ -28,7 +27,7 @@ def _format_error(error):
     key = '.'.join(str(p) for p in path)
     return key, error.message
 
-class ModelBase:
+class Model(dict):
     '''
     Handles validation and swagger style inheritance for both subclasses.
     Subclass must define `schema` attribute.
@@ -37,7 +36,8 @@ class ModelBase:
     '''
 
     def __init__(self, name, *args, **kwargs):
-        super(ModelBase, self).__init__(*args, **kwargs)
+        super(Model, self).__init__(*args, **kwargs)
+
         self.__apidoc__ = {
             'name': name
         }
@@ -105,27 +105,7 @@ class ModelBase:
 
     __str__ = __unicode__
 
-
-class RawModel(ModelBase):
-    '''
-    A thin wrapper on ordered fields dict to store API doc metadata.
-    Can also be used for response marshalling.
-
-    :param str name: The model public name
-    :param str mask: an optional default model mask
-    '''
-
     wrapper = dict
-
-    def __init__(self, name, *args, **kwargs):
-        self.__mask__ = kwargs.pop('mask', None)
-        if self.__mask__ and not isinstance(self.__mask__, Mask):
-            self.__mask__ = Mask(self.__mask__)
-        super(RawModel, self).__init__(name, *args, **kwargs)
-
-        def instance_clone(name, *parents):
-            return self.__class__.clone(name, self, *parents)
-        self.clone = instance_clone
 
     @property
     def _schema(self):
@@ -144,7 +124,6 @@ class RawModel(ModelBase):
             'required': sorted(list(required)) or None,
             'properties': properties,
             'discriminator': discriminator,
-            'x-mask': str(self.__mask__) if self.__mask__ else None,
             'type': 'object',
         })
 
@@ -170,84 +149,3 @@ class RawModel(ModelBase):
             candidates[0].default = self.name
 
         return resolved
-
-    def extend(self, name, fields):
-        '''
-        Extend this model (Duplicate all fields)
-
-        :param str name: The new model name
-        :param dict fields: The new model extra fields
-
-        :deprecated: since 0.9. Use :meth:`clone` instead.
-        '''
-        warnings.warn('extend is is deprecated, use clone instead', DeprecationWarning, stacklevel=2)
-        if isinstance(fields, (list, tuple)):
-            return self.clone(name, *fields)
-        return self.clone(name, fields)
-
-    @classmethod
-    def clone(cls, name, *parents):
-        '''
-        Clone these models (Duplicate all fields)
-
-        It can be used from the class
-
-        >>> model = Model.clone(fields_1, fields_2)
-
-        or from an Instanciated model
-
-        >>> new_model = model.clone(fields_1, fields_2)
-
-        :param str name: The new model name
-        :param dict parents: The new model extra fields
-        '''
-        fields = cls.wrapper()
-        for parent in parents:
-            fields.update(copy.deepcopy(parent))
-        return cls(name, fields)
-
-    def __deepcopy__(self, memo):
-        obj = self.__class__(self.name,
-                             [(key, copy.deepcopy(value, memo)) for key, value in self.items()],
-                             mask=self.__mask__)
-        obj.__parents__ = self.__parents__
-        return obj
-
-
-class Model(RawModel, dict, MutableMapping):
-    '''
-    A thin wrapper on fields dict to store API doc metadata.
-    Can also be used for response marshalling.
-
-    :param str name: The model public name
-    :param str mask: an optional default model mask
-    '''
-
-
-class OrderedModel(RawModel, OrderedDict, MutableMapping):
-    '''
-    A thin wrapper on ordered fields dict to store API doc metadata.
-    Can also be used for response marshalling.
-
-    :param str name: The model public name
-    :param str mask: an optional default model mask
-    '''
-    wrapper = OrderedDict
-
-
-class SchemaModel(ModelBase):
-    '''
-    Stores API doc metadata based on a json schema.
-
-    :param str name: The model public name
-    :param dict schema: The json schema we are documenting
-    '''
-
-    def __init__(self, name, schema=None):
-        super(SchemaModel, self).__init__(name)
-        self._schema = schema or {}
-
-    def __unicode__(self):
-        return 'SchemaModel({name},{schema})'.format(name=self.name, schema=self._schema)
-
-    __str__ = __unicode__

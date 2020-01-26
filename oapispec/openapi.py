@@ -11,7 +11,7 @@ from urllib.parse import quote
 from werkzeug.routing import parse_rule
 
 from oapispec import fields
-from oapispec.model import ModelBase
+from oapispec.model import Model
 from oapispec.core.reqparse import RequestParser
 from oapispec.core.utils import merge, not_none, not_none_sorted
 
@@ -115,14 +115,14 @@ def create_openapi_spec_dict(metadata, handlers):
         'security': security_requirements(metadata.security) or None,
         'tags': tags,
         'definitions': serialize_definitions(models) or None,
-        'responses': [], # TODO-ray: Determine if required/useful and implement or remove
+        'responses': {}, # TODO-ray: Determine if required/useful and implement or remove
         'host': metadata.host,
     }
     return not_none(specs)
 
 def ref(model):
     '''Return a reference to model in definitions'''
-    name = model.name if isinstance(model, ModelBase) else model
+    name = model.name if isinstance(model, Model) else model
     return {'$ref': '#/definitions/{0}'.format(quote(name, safe=''))}
 
 def extract_path_params(path):
@@ -196,6 +196,7 @@ def extract_tags(metadata, handlers):
         description = ns.get('description')
         if name not in by_name:
             tags.append(ns if description else {'name': name})
+            by_name[name] = True
         elif description:
             by_name[name]['description'] = description
 
@@ -210,7 +211,7 @@ def expected_params(doc):
         if isinstance(expect, RequestParser):
             parser_params = OrderedDict((p['name'], p) for p in expect.__schema__)
             params.update(parser_params)
-        elif isinstance(expect, ModelBase):
+        elif isinstance(expect, Model):
             params['payload'] = not_none({
                 'name': 'payload',
                 'required': True,
@@ -379,7 +380,7 @@ def serialize_schema(model):
             'items': serialize_schema(model),
         }
 
-    if isinstance(model, ModelBase):
+    if isinstance(model, Model):
         # register_model(model)
         return ref(model)
 
@@ -403,10 +404,10 @@ def find_models(handlers):
     apidoc_list = [getattr(h, '__apidoc__') for h in handlers]
     for apidoc in apidoc_list:
         for expect in apidoc.get('expect', []):
-            if isinstance(expect, ModelBase):
+            if isinstance(expect, Model):
                 models[expect.name] = expect
         for _, (_, model, _) in apidoc.get('responses', {}).items():
-            if isinstance(model, ModelBase):
+            if isinstance(model, Model):
                 models[model.name] = model
     return models
 

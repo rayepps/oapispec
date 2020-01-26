@@ -4,6 +4,8 @@ __pycache__/
 
 debug.json
 
+tests/results/
+
 # C extensions
 *.so
 .DS_STORE

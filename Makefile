@@ -1,7 +1,7 @@
 
 .PHONY: test
 test:
-	PYTHONPATH=`pwd` python -m pytest --cov=oapispec --cov-report term:skip-covered --cov-fail-under=100 --cov-report html tests/ -v
+	PYTHONPATH=`pwd` python -m pytest --cov=oapispec --cov-report term:skip-covered --cov-fail-under=100 --cov-report html tests/ -vv
 
 .PHONY: lint
 lint:
@@ -28,3 +28,4 @@ install:
 	pip install -r requirements.txt
 	pip install -r requirements.dev.txt
 	pip install -r requirements.test.txt
+	npm install -g swagger-cli # <- used for testing the generated spec is valid in end_to_end tests

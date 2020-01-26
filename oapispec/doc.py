@@ -124,7 +124,7 @@ def vendor(*args, **kwargs):
 
 def method(http_method):
     '''A decorator to set the method for the handler'''
-    return doc(method=http_method)
+    return doc(method=http_method.lower())
 
 def namespace(name, description=None):
     '''A decorator that groups the decorated handler function in a namespace'''
