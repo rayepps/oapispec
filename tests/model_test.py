@@ -33,32 +33,6 @@ def test_model_returns_error():
         'username': "'username' is a required property"
     }
 
-def test_model_as_flat_dict():
-    model = oapi.model.Model('Person', {
-        'name': oapi.fields.string(),
-        'age': oapi.fields.integer(),
-        'birthdate': oapi.fields.date_time()
-    })
-
-    assert isinstance(model, dict)
-    assert not isinstance(model, OrderedDict)
-
-    assert model.__schema__ == {
-        'properties': {
-            'name': {
-                'type': 'string'
-            },
-            'age': {
-                'type': 'integer'
-            },
-            'birthdate': {
-                'type': 'string',
-                'format': 'date-time'
-            }
-        },
-        'type': 'object'
-    }
-
 def test_model_as_nested_dict():
 
     address = oapi.model.Model('Address', {

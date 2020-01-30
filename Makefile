@@ -21,7 +21,9 @@ check: lint test
 
 .PHONY: venv
 venv:
-	python3 -m venv venv
+	# If your on windows you need to figure out where python 3.8 is installed and use that path
+	# If you don't have this version installed - install it
+	/Library/Frameworks/Python.framework/Versions/3.8/bin/python3 -m venv venv
 
 .PHONY: install
 install:

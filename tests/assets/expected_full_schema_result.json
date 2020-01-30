@@ -64,7 +64,7 @@
                         }
                     },
                     "200": {
-                        "description": "Document created, URL follows",
+                        "description": "Request fulfilled, document follows",
                         "schema": {
                             "$ref": "#/definitions/PagedUserList"
                         }
@@ -107,6 +107,36 @@
                         "in": "query",
                         "type": "string",
                         "format": "email"
+                    }
+                ],
+                "tags": [
+                    "User"
+                ]
+            }
+        },
+        "/user/{user_id}": {
+            "get": {
+                "responses": {
+                    "401": {
+                        "description": "No permission -- see authorization schemes",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                },
+                "operationId": "find_user",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
                     }
                 ],
                 "tags": [
@@ -217,6 +247,5 @@
             },
             "type": "object"
         }
-    },
-    "responses": {}
+    }
 }

@@ -51,16 +51,16 @@ search_arg_parser.add_argument('sort', type=str, location='args')
 @oapi.doc.namespace('Health Check')
 @oapi.doc.route('/ping')
 @oapi.doc.method('GET')
-@oapi.doc.response(HTTPStatus.CREATED.value, HTTPStatus.CREATED.description, user_model)
-@oapi.doc.response(HTTPStatus.UNAUTHORIZED.value, HTTPStatus.UNAUTHORIZED.description, problem_details_model)
+@oapi.doc.response(HTTPStatus.CREATED, user_model)
+@oapi.doc.response(HTTPStatus.UNAUTHORIZED, problem_details_model)
 def ping():
     pass
 
 @oapi.doc.namespace('User')
 @oapi.doc.route('/user')
 @oapi.doc.method('POST')
-@oapi.doc.response(HTTPStatus.CREATED.value, HTTPStatus.CREATED.description, user_model)
-@oapi.doc.response(HTTPStatus.UNAUTHORIZED.value, HTTPStatus.UNAUTHORIZED.description, problem_details_model)
+@oapi.doc.response(HTTPStatus.CREATED, user_model)
+@oapi.doc.response(HTTPStatus.UNAUTHORIZED, problem_details_model)
 @oapi.doc.expect(user_model)
 def add_user():
     pass
@@ -68,8 +68,8 @@ def add_user():
 @oapi.doc.namespace('User')
 @oapi.doc.route('/user')
 @oapi.doc.method('GET')
-@oapi.doc.response(HTTPStatus.OK.value, HTTPStatus.CREATED.description, paged_user_model)
-@oapi.doc.response(HTTPStatus.UNAUTHORIZED.value, HTTPStatus.UNAUTHORIZED.description, problem_details_model)
+@oapi.doc.response(HTTPStatus.OK, paged_user_model)
+@oapi.doc.response(HTTPStatus.UNAUTHORIZED, problem_details_model)
 @oapi.doc.expect(search_arg_parser)
 @oapi.doc.doc(args=search_arg_parser)
 def get_users():

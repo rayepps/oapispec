@@ -1,6 +1,11 @@
-import warnings
+'''The doc module provides decorator functions that will modify a
+functions __apidoc__ object. For example, when using `method('GET')`
+it will set the value of the functions method as 'get' on its __apidoc__'''
 
-from oapispec.core.utils import merge
+import warnings
+from http import HTTPStatus
+
+from oapispec.core.utils import merge, not_none
 
 
 def doc(shortcut=None, **kwargs):
@@ -24,19 +29,10 @@ def unshortcut_params_description(data):
             if isinstance(description, str):
                 data['params'][name] = {'description': description}
 
-def handle_deprecations(apidoc):
-    if 'parser' in apidoc:
-        warnings.warn('The parser attribute is deprecated, use expect instead', DeprecationWarning, stacklevel=2)
-        apidoc['expect'] = apidoc.get('expect', []) + [apidoc.pop('parser')]
-    if 'body' in apidoc:
-        warnings.warn('The body attribute is deprecated, use expect instead', DeprecationWarning, stacklevel=2)
-        apidoc['expect'] = apidoc.get('expect', []) + [apidoc.pop('body')]
-
 def _build_doc(apidoc):
     if apidoc is False:
         return False
     unshortcut_params_description(apidoc)
-    handle_deprecations(apidoc)
     return apidoc
 
 def route(endpoint):
@@ -49,7 +45,7 @@ def hide(func):
     '''A decorator to hide a resource or a method from specifications'''
     return doc(False)(func)
 
-def expect(*inputs):
+def expect(model, description=None):
     '''
     A decorator to Specify the expected input model
 
@@ -57,10 +53,7 @@ def expect(*inputs):
     :param bool validate: whether to perform validation or not
 
     '''
-    params = {
-        'expect': list(inputs)
-    }
-    return doc(**params)
+    return doc(expect=[(model, description)])
 
 def param(name, description=None, _in='query', **kwargs):
     '''
@@ -75,16 +68,17 @@ def param(name, description=None, _in='query', **kwargs):
     params['description'] = description
     return doc(params={name: params})
 
-def response(code, description, model=None, **kwargs):
+def response(http_status: HTTPStatus, model=None, headers=None):
     '''
     A decorator to specify one of the expected responses
 
-    :param int code: the HTTP status code
-    :param str description: a small description about the response
+    :param HTTPStatus http_status: the HTTP status (or any object with a 'value' and 'description' property)
     :param ModelBase model: an optional response model
-
+    :param dict<str, header> headers: an optional dict of headers that are returned with this response
     '''
-    return doc(responses={str(code): (description, model, kwargs)})
+    code = http_status.value
+    description = http_status.description
+    return doc(responses={str(code): (description, model, headers)})
 
 def header(name, description=None, **kwargs):
     '''
@@ -128,7 +122,7 @@ def method(http_method):
 
 def namespace(name, description=None):
     '''A decorator that groups the decorated handler function in a namespace'''
-    return doc(namespace={
+    return doc(namespace=not_none({
         'name': name,
         'description': description
-    })
+    }))

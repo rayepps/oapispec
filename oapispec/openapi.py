@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import itertools
 import re
 from http import HTTPStatus
@@ -22,7 +20,8 @@ PATH_TYPES = {
     'int': 'integer',
     'float': 'number',
     'string': 'string',
-    'default': 'string',
+    'str': 'string',
+    'default': 'string'
 }
 
 
@@ -36,9 +35,6 @@ PY_TYPES = {
 }
 
 RE_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
-
-DEFAULT_RESPONSE_DESCRIPTION = 'Success'
-DEFAULT_RESPONSE = {'description': DEFAULT_RESPONSE_DESCRIPTION}
 
 
 class OpenApi:
@@ -94,9 +90,12 @@ def create_openapi_spec_dict(metadata, handlers):
 
     paths = {}
     for apidoc in docs:
-        current_route_obj = paths.get(apidoc['route'], {})
+        route = apidoc.get('route')
+        stripped_route = clean_route(route)
+
+        current_route_obj = paths.get(stripped_route, {})
         current_route_obj[apidoc['method']] = apidoc
-        paths[apidoc['route']] = current_route_obj
+        paths[stripped_route] = current_route_obj
 
     for path, methods in paths.items():
         for method, doc in methods.items():
@@ -115,7 +114,6 @@ def create_openapi_spec_dict(metadata, handlers):
         'security': security_requirements(metadata.security) or None,
         'tags': tags,
         'definitions': serialize_definitions(models) or None,
-        'responses': {}, # TODO-ray: Determine if required/useful and implement or remove
         'host': metadata.host,
     }
     return not_none(specs)
@@ -124,6 +122,29 @@ def ref(model):
     '''Return a reference to model in definitions'''
     name = model.name if isinstance(model, Model) else model
     return {'$ref': '#/definitions/{0}'.format(quote(name, safe=''))}
+
+def strip_route_types(route):
+    '''Takes a route ('/path/to/<str:id>') and removes the type
+    parameters ('/path/to/<id>')'''
+    match = re.search('\/\<([a-z]+):', route)
+    if not match:
+        return route
+    typ = match.groups()[0]
+    route = route.replace(f'/<{typ}:', '/<')
+    return strip_route_types(route)
+
+def convert_path_args_to_brackets(route):
+    '''Takes a route ('/path/to/<id>') and converts the
+    arrows to brackets ('/path/to/{id}')'''
+    match = re.search('\/\<([a-z_]+)\>', route)
+    if not match:
+        return route
+    param = match.groups()[0]
+    route = route.replace(f'/<{param}>', f'/{{{param}}}')
+    return convert_path_args_to_brackets(route)
+
+def clean_route(route):
+    return convert_path_args_to_brackets(strip_route_types(route))
 
 def extract_path_params(path):
     '''
@@ -141,14 +162,12 @@ def extract_path_params(path):
 
         if converter in PATH_TYPES:
             param['type'] = PATH_TYPES[converter]
-        # elif converter in current_app.url_map.converters:
-        #     param['type'] = 'string'
         else:
-            raise ValueError('Unsupported type converter: %s' % converter)
+            raise ValueError(f'Unsupported type converter: {converter}')
         params[variable] = param
     return params
 
-def _clean_header(header):
+def create_header_object(header):
     if isinstance(header, str):
         header = {'description': header}
     typedef = header.get('type', 'string')
@@ -163,15 +182,6 @@ def _clean_header(header):
         header['type'] = typedef
     return not_none(header)
 
-def is_hidden(resource, route_doc=None):
-    '''
-    Determine whether a Resource has been hidden from Swagger documentation
-    i.e. by using Api.doc(False) decorator
-    '''
-    if route_doc is False:
-        return True
-    return hasattr(resource, "__apidoc__") and resource.__apidoc__ is False
-
 def extract_tags(metadata, handlers):
 
     tags = []
@@ -180,84 +190,69 @@ def extract_tags(metadata, handlers):
     for tag in metadata.tags:
         if isinstance(tag, str):
             tag = {'name': tag}
-        elif isinstance(tag, (list, tuple)):
-            tag = {'name': tag[0], 'description': tag[1]}
-        elif isinstance(tag, dict) and 'name' in tag:
-            pass
-        else:
-            raise ValueError('Unsupported tag format for {0}'.format(tag))
-        tags.append(tag)
-        by_name[tag['name']] = tag
+        if isinstance(tag, dict) and 'name' in tag:
+            tags.append(tag)
+            by_name[tag['name']] = tag
 
     namespaces = [getattr(h, '__apidoc__', {}).get('namespace', {}) for h in handlers]
 
     for ns in namespaces:
         name = ns.get('name')
-        description = ns.get('description')
         if name not in by_name:
-            tags.append(ns if description else {'name': name})
+            tags.append(ns)
             by_name[name] = True
-        elif description:
-            by_name[name]['description'] = description
 
     return tags
 
-def expected_params(doc):
+def expected_params(apidoc):
     params = OrderedDict()
-    if 'expect' not in doc:
-        return params
 
-    for expect in doc.get('expect', []):
-        if isinstance(expect, RequestParser):
-            parser_params = OrderedDict((p['name'], p) for p in expect.__schema__)
+    for model, description in apidoc.get('expect', []):
+
+        if isinstance(model, RequestParser):
+            parser_params = OrderedDict((p['name'], p) for p in model.__schema__)
             params.update(parser_params)
-        elif isinstance(expect, Model):
+            continue
+
+        if isinstance(model, Model):
             params['payload'] = not_none({
                 'name': 'payload',
                 'required': True,
                 'in': 'body',
-                'schema': serialize_schema(expect),
+                'schema': serialize_schema(model)
             })
-        elif isinstance(expect, (list, tuple)):
-            if len(expect) == 2:
-                # this is (payload, description) shortcut
-                model, description = expect
-                params['payload'] = not_none({
-                    'name': 'payload',
-                    'required': True,
-                    'in': 'body',
-                    'schema': serialize_schema(model),
-                    'description': description
-                })
-            else:
-                params['payload'] = not_none({
-                    'name': 'payload',
-                    'required': True,
-                    'in': 'body',
-                    'schema': serialize_schema(expect),
-                })
+            continue
+
+        params['payload'] = not_none({
+            'name': 'payload',
+            'required': True,
+            'in': 'body',
+            'schema': serialize_schema(model),
+            'description': description
+        })
+
     return params
 
-def serialize_operation(apidoc_obj):
+def serialize_operation(apidoc):
 
     operation = {
-        'responses': responses_for(apidoc_obj) or None,
+        'responses': responses_for(apidoc) or None,
         # 'summary': 'TODO-ray parse docstirng from here', # doc[method]['docstring']['summary'],
-        'description': apidoc_obj.get('description') or None,
-        'operationId': apidoc_obj.get('name'),
-        'parameters': parameters_for(apidoc_obj) or None,
-        'security': security_for(apidoc_obj)
+        'description': apidoc.get('description') or None,
+        'operationId': apidoc.get('name'),
+        'parameters': parameters_for(apidoc) or None,
+        'security': security_for(apidoc)
     }
 
-    if 'namespace' in apidoc_obj:
-        operation['tags'] = [apidoc_obj['namespace']['name']]
+    if 'namespace' in apidoc:
+        operation['tags'] = [apidoc['namespace']['name']]
 
     # Handle 'produces' mimetypes documentation
-    if 'produces' in apidoc_obj:
-        operation['produces'] = apidoc_obj['produces']
+    if 'produces' in apidoc:
+        operation['produces'] = apidoc['produces']
 
     # Handle deprecated annotation
-    if apidoc_obj.get('deprecated'):
+    if apidoc.get('deprecated'):
         operation['deprecated'] = True
 
     if operation.get('parameters', False) and any(p['in'] == 'formData' for p in operation.get('parameters')):
@@ -266,7 +261,7 @@ def serialize_operation(apidoc_obj):
         else:
             operation['consumes'] = ['application/x-www-form-urlencoded', 'multipart/form-data']
 
-    operation.update(vendor_fields(apidoc_obj))
+    operation.update(vendor_fields(apidoc))
 
     return not_none(operation)
 
@@ -281,90 +276,83 @@ def vendor_fields(apidoc):
         for k, v in apidoc.get('vendor', {}).items()
     )
 
-def parameters_for(doc):
+def create_parameter(name, param):
+    param['name'] = name
+
+    if 'type' not in param and 'schema' not in param:
+        param['type'] = 'string'
+
+    if 'in' not in param:
+        param['in'] = 'query'
+
+    if 'type' in param and 'schema' not in param:
+        ptype = param.get('type', None)
+        if isinstance(ptype, (list, tuple)):
+            typ = ptype[0]
+            param['type'] = 'array'
+            param['items'] = {'type': PY_TYPES.get(typ, typ)}
+
+        elif isinstance(ptype, (type, type(None))) and ptype in PY_TYPES:
+            param['type'] = PY_TYPES[ptype]
+
+    return param
+
+def parameters_for(apidoc):
 
     params = []
 
-    url = doc.get('route', 'TODO-ray check if route not found')
+    route = apidoc.get('route')
 
-    expected_paramaters = expected_params(doc)
-    doc_params = doc.get('params', {})
-    path_params = extract_path_params(url)
+    if route is None:
+        raise ValueError('route value cannot be empty. Every function must be decorated with @doc.route("/route/path")')
+
+    expected_paramaters = expected_params(apidoc)
+    doc_params = apidoc.get('params', {})
+    path_params = extract_path_params(route)
 
     params = list(merge(merge(expected_paramaters, doc_params), path_params).values())
 
-    for name, param in doc.get('params', {}).items():
-
-        param['name'] = name
-
-        if 'type' not in param and 'schema' not in param:
-            param['type'] = 'string'
-
-        if 'in' not in param:
-            param['in'] = 'query'
-
-        if 'type' in param and 'schema' not in param:
-            ptype = param.get('type', None)
-            if isinstance(ptype, (list, tuple)):
-                typ = ptype[0]
-                param['type'] = 'array'
-                param['items'] = {'type': PY_TYPES.get(typ, typ)}
-
-            elif isinstance(ptype, (type, type(None))) and ptype in PY_TYPES:
-                param['type'] = PY_TYPES[ptype]
-
+    for name, param in doc_params.items():
+        param = create_parameter(name, param)
         params.append(param)
 
     return params
 
 def responses_for(apidoc):
+
     responses = {}
-    if 'responses' in apidoc:
-        for code, response in apidoc['responses'].items():
-            code = str(code)
-            if isinstance(response, str):
-                description = response
-                model = None
-                kwargs = {}
-            elif len(response) == 3:
-                description, model, kwargs = response
-            elif len(response) == 2:
-                description, model = response
-                kwargs = {}
-            else:
-                raise ValueError('Unsupported response specification')
-            description = description or DEFAULT_RESPONSE_DESCRIPTION
-            if code in responses:
-                responses[code].update(description=description)
-            else:
-                responses[code] = {'description': description}
-            if model:
-                schema = serialize_schema(model)
-                envelope = kwargs.get('envelope')
-                if envelope:
-                    schema = {'properties': {envelope: schema}}
-                responses[code]['schema'] = schema
-            process_headers(responses[code], apidoc, kwargs.get('headers'))
+    global_headers = apidoc.get('headers', {})
+
+    for code, (description, model, headers) in apidoc.get('responses', {}).items():
+
+        description = description or 'Success'
+        headers = headers or {}
+
+        if code in responses:
+            responses[code].update(description=description)
+        else:
+            responses[code] = {'description': description}
+        if model is not None:
+            schema = serialize_schema(model)
+            responses[code]['schema'] = schema
+        responses[code] = attatch_headers(responses[code], global_headers, headers)
+
     if 'model' in apidoc:
         code = str(apidoc.get('default_code', HTTPStatus.OK))
         if code not in responses:
-            responses[code] = process_headers(DEFAULT_RESPONSE.copy(), apidoc)
+            responses[code] = attatch_headers({'description': 'Success'}, global_headers, {})
         responses[code]['schema'] = serialize_schema(apidoc['model'])
 
-    if not responses:
-        responses[str(HTTPStatus.OK.value)] = process_headers(DEFAULT_RESPONSE.copy(), apidoc)
     return responses
 
-def process_headers(response, apidoc, headers=None):
-    if 'headers' in apidoc or headers:
-        response['headers'] = dict(
-            (k, _clean_header(v)) for k, v
-            in itertools.chain(
-                apidoc.get('headers', {}).items(),
-                (headers or {}).items()
-            )
-        )
-    return response
+def attatch_headers(response, global_headers, response_headers):
+    all_headers = { **global_headers, **response_headers }
+    if not all_headers:
+        return response
+    return {
+        **response,
+        'headers': dict((k, create_header_object(v)) for k, v in all_headers.items())
+    }
 
 def serialize_definitions(registered_models):
     return dict(
@@ -373,6 +361,7 @@ def serialize_definitions(registered_models):
     )
 
 def serialize_schema(model):
+
     if isinstance(model, (list, tuple)):
         model = model[0]
         return {

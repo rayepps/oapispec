@@ -27,7 +27,7 @@ def _format_error(error):
     key = '.'.join(str(p) for p in path)
     return key, error.message
 
-class Model(dict):
+class Model:
     '''
     Handles validation and swagger style inheritance for both subclasses.
     Subclass must define `schema` attribute.
@@ -35,8 +35,8 @@ class Model(dict):
     :param str name: The model public name
     '''
 
-    def __init__(self, name, *args, **kwargs):
-        super(Model, self).__init__(*args, **kwargs)
+    def __init__(self, name, attributes):
+        self.attributes = attributes
 
         self.__apidoc__ = {
             'name': name
@@ -100,19 +100,15 @@ class Model(dict):
             return dict(_format_error(e) for e in validator.iter_errors(data))
         return None
 
-    def __unicode__(self):
-        return 'Model({name},{{{fields}}})'.format(name=self.name, fields=','.join(self.keys()))
-
-    __str__ = __unicode__
-
-    wrapper = dict
+    def __str__(self):
+        return 'Model({name},{{{fields}}})'.format(name=self.name, fields=','.join(self.attributes.keys()))
 
     @property
     def _schema(self):
-        properties = self.wrapper()
+        properties = {}
         required = set()
         discriminator = None
-        for name, field in self.items():
+        for name, field in self.attributes.items():
             field = instance(field)
             properties[name] = field.__schema__
             if field.required:

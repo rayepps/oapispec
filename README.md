@@ -48,3 +48,8 @@ def add_book():
 
 mock_schema = schema.register(add_book)
 ```
+
+
+## TODO
+- **Validate input data for... everything.** For example, validate well formed tag parameters when initializing a schema with metadata. Raise an exception if the given tag is not a string or a dict with a name property. Currently, there are exceptions be raised in the modules that build the spec. In order to get the best (and most testable)
+api lets find those points of useful validation and move them to locations where the client passes them. This way, we can raise useful info with the exception letting the client know what is wrong, why, and how to fix it.
