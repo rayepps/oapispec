@@ -11,9 +11,6 @@ FIRST_CAP_RE = re.compile('(.)([A-Z][a-z]+)')
 ALL_CAP_RE = re.compile('([a-z0-9])([A-Z])')
 
 
-__all__ = ('merge', 'camel_to_dash', 'default_id', 'not_none', 'not_none_sorted', 'unpack')
-
-
 def immutable(obj=None, **kwargs):
     if obj is not None:
         return Immutable(**obj)
@@ -31,8 +28,6 @@ def merge(first, second):
     :return: the resulting merged dictionary
     :rtype: dict
     '''
-    if not isinstance(second, dict):
-        return second
     result = deepcopy(first)
     for key, value in second.items():
         if key in result and isinstance(result[key], dict):
@@ -52,11 +47,6 @@ def camel_to_dash(value):
     '''
     first_cap = FIRST_CAP_RE.sub(r'\1_\2', value)
     return ALL_CAP_RE.sub(r'\1_\2', first_cap).lower()
-
-
-def default_id(resource, method):
-    '''Default operation ID generator'''
-    return '{0}_{1}'.format(method, camel_to_dash(resource))
 
 
 def not_none(data):
@@ -79,41 +69,3 @@ def not_none_sorted(data):
     :rtype: OrderedDict
     '''
     return dict(OrderedDict((k, v) for k, v in sorted(data.items()) if v is not None))
-
-
-def unpack(response, default_code=HTTPStatus.OK):
-    '''
-    Unpack a Flask standard response.
-
-    Flask response can be:
-    - a single value
-    - a 2-tuple ``(value, code)``
-    - a 3-tuple ``(value, code, headers)``
-
-    .. warning::
-
-        When using this function, you must ensure that the tuple is not the response data.
-        To do so, prefer returning list instead of tuple for listings.
-
-    :param response: A Flask style response
-    :param int default_code: The HTTP code to use as default if none is provided
-    :return: a 3-tuple ``(data, code, headers)``
-    :rtype: tuple
-    :raise ValueError: if the response does not have one of the expected format
-    '''
-    if not isinstance(response, tuple):
-        # data only
-        return response, default_code, {}
-    elif len(response) == 1:
-        # data only as tuple
-        return response[0], default_code, {}
-    elif len(response) == 2:
-        # data and code
-        data, code = response
-        return data, code, {}
-    elif len(response) == 3:
-        # data, code and headers
-        data, code, headers = response
-        return data, code or default_code, headers
-    else:
-        raise ValueError('Too many response values')

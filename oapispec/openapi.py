@@ -1,16 +1,11 @@
-import itertools
 import re
-from http import HTTPStatus
-from inspect import isclass
 from collections import OrderedDict
 from collections.abc import Hashable
 from urllib.parse import quote
 
 from werkzeug.routing import parse_rule
 
-from oapispec import fields
 from oapispec.model import Model
-from oapispec.core.reqparse import RequestParser
 from oapispec.core.utils import merge, not_none, not_none_sorted
 
 
@@ -34,8 +29,6 @@ PY_TYPES = {
     None: 'void'
 }
 
-RE_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
-
 
 class OpenApi:
     '''
@@ -57,10 +50,29 @@ def create_openapi_spec_dict(metadata, handlers):
     :rtype: dict
     '''
 
-    basepath = metadata.base_path
-    if len(basepath) > 1 and basepath.endswith('/'):
-        basepath = basepath[:-1]
+    paths = build_paths(handlers)
+    models = find_models(handlers)
 
+    return not_none({
+        'swagger': '2.0',
+        'basePath': parse_base_path(metadata.base_path),
+        'paths': not_none_sorted(paths),
+        'info': build_infos(metadata),
+        'produces': metadata.representations,
+        'consumes': ['application/json'],
+        'securityDefinitions': metadata.authorizations or None,
+        'security': security_requirements(metadata.security) or None,
+        'tags': extract_tags(metadata, handlers),
+        'definitions': serialize_definitions(models) or None,
+        'host': metadata.host,
+    })
+
+def parse_base_path(base_path):
+    if len(base_path) > 1 and base_path.endswith('/'):
+        base_path = base_path[:-1]
+    return base_path
+
+def build_infos(metadata):
     infos = {
         'title': metadata.title,
         'version': metadata.version
@@ -84,10 +96,10 @@ def create_openapi_spec_dict(metadata, handlers):
         if metadata.license_url:
             infos['license']['url'] = metadata.license_url
 
-    tags = extract_tags(metadata, handlers)
+    return infos
 
+def build_paths(handlers):
     docs = [{ **getattr(handler, '__apidoc__', {}), 'handler': handler } for handler in handlers]
-
     paths = {}
     for apidoc in docs:
         route = apidoc.get('route')
@@ -101,22 +113,7 @@ def create_openapi_spec_dict(metadata, handlers):
         for method, doc in methods.items():
             paths[path][method] = serialize_operation(doc)
 
-    models = find_models(handlers)
-
-    specs = {
-        'swagger': '2.0',
-        'basePath': basepath,
-        'paths': not_none_sorted(paths),
-        'info': infos,
-        'produces': metadata.representations,
-        'consumes': ['application/json'],
-        'securityDefinitions': metadata.authorizations or None,
-        'security': security_requirements(metadata.security) or None,
-        'tags': tags,
-        'definitions': serialize_definitions(models) or None,
-        'host': metadata.host,
-    }
-    return not_none(specs)
+    return paths
 
 def ref(model):
     '''Return a reference to model in definitions'''
@@ -126,7 +123,7 @@ def ref(model):
 def strip_route_types(route):
     '''Takes a route ('/path/to/<str:id>') and removes the type
     parameters ('/path/to/<id>')'''
-    match = re.search('\/\<([a-z]+):', route)
+    match = re.search(r'\/\<([a-z]+):', route)
     if not match:
         return route
     typ = match.groups()[0]
@@ -136,7 +133,7 @@ def strip_route_types(route):
 def convert_path_args_to_brackets(route):
     '''Takes a route ('/path/to/<id>') and converts the
     arrows to brackets ('/path/to/{id}')'''
-    match = re.search('\/\<([a-z_]+)\>', route)
+    match = re.search(r'\/\<([a-z_]+)\>', route)
     if not match:
         return route
     param = match.groups()[0]
@@ -209,17 +206,12 @@ def expected_params(apidoc):
 
     for model, description in apidoc.get('expect', []):
 
-        if isinstance(model, RequestParser):
-            parser_params = OrderedDict((p['name'], p) for p in model.__schema__)
-            params.update(parser_params)
-            continue
-
         if isinstance(model, Model):
             params['payload'] = not_none({
                 'name': 'payload',
                 'required': True,
                 'in': 'body',
-                'schema': serialize_schema(model)
+                'schema': ref(model)
             })
             continue
 
@@ -227,39 +219,43 @@ def expected_params(apidoc):
             'name': 'payload',
             'required': True,
             'in': 'body',
-            'schema': serialize_schema(model),
+            'schema': ref(model),
             'description': description
         })
 
     return params
 
+def get_operation_consumes(parameters):
+    if not parameters:
+        return None
+    if not any(p['in'] == 'formData' for p in parameters):
+        return None
+    if any(p['type'] == 'file' for p in parameters):
+        return ['multipart/form-data']
+    return ['application/x-www-form-urlencoded', 'multipart/form-data']
+
+def get_operation_namespace(apidoc):
+    return [apidoc['namespace']['name']] if 'namespace' in apidoc else None
+
+def get_operation_produces(apidoc):
+    return [apidoc['produces']] if 'produces' in apidoc else None
+
 def serialize_operation(apidoc):
+
+    parameters = parameters_for(apidoc)
 
     operation = {
         'responses': responses_for(apidoc) or None,
         # 'summary': 'TODO-ray parse docstirng from here', # doc[method]['docstring']['summary'],
         'description': apidoc.get('description') or None,
         'operationId': apidoc.get('name'),
-        'parameters': parameters_for(apidoc) or None,
-        'security': security_for(apidoc)
+        'parameters': parameters,
+        'security': security_for(apidoc),
+        'consumes': get_operation_consumes(parameters),
+        'produces': get_operation_produces(apidoc),
+        'tags': get_operation_namespace(apidoc),
+        'deprecated': True if apidoc.get('deprecated', False) else None
     }
-
-    if 'namespace' in apidoc:
-        operation['tags'] = [apidoc['namespace']['name']]
-
-    # Handle 'produces' mimetypes documentation
-    if 'produces' in apidoc:
-        operation['produces'] = apidoc['produces']
-
-    # Handle deprecated annotation
-    if apidoc.get('deprecated'):
-        operation['deprecated'] = True
-
-    if operation.get('parameters', False) and any(p['in'] == 'formData' for p in operation.get('parameters')):
-        if any(p['type'] == 'file' for p in operation.get('parameters')):
-            operation['consumes'] = ['multipart/form-data']
-        else:
-            operation['consumes'] = ['application/x-www-form-urlencoded', 'multipart/form-data']
 
     operation.update(vendor_fields(apidoc))
 
@@ -272,27 +268,16 @@ def vendor_fields(apidoc):
     See: http://swagger.io/specification/#specification-extensions-128
     '''
     return dict(
-        (k if k.startswith('x-') else 'x-{0}'.format(k), v)
+        (k if k.startswith('x-') else f'x-{k}', v)
         for k, v in apidoc.get('vendor', {}).items()
     )
 
 def create_parameter(name, param):
     param['name'] = name
 
-    if 'type' not in param and 'schema' not in param:
-        param['type'] = 'string'
-
-    if 'in' not in param:
-        param['in'] = 'query'
-
     if 'type' in param and 'schema' not in param:
         ptype = param.get('type', None)
-        if isinstance(ptype, (list, tuple)):
-            typ = ptype[0]
-            param['type'] = 'array'
-            param['items'] = {'type': PY_TYPES.get(typ, typ)}
-
-        elif isinstance(ptype, (type, type(None))) and ptype in PY_TYPES:
+        if isinstance(ptype, (type, type(None))) and ptype in PY_TYPES:
             param['type'] = PY_TYPES[ptype]
 
     return param
@@ -310,13 +295,13 @@ def parameters_for(apidoc):
     doc_params = apidoc.get('params', {})
     path_params = extract_path_params(route)
 
-    params = list(merge(merge(expected_paramaters, doc_params), path_params).values())
+    all_params = merge(merge(expected_paramaters, doc_params), path_params)
 
-    for name, param in doc_params.items():
+    for name, param in all_params.items():
         param = create_parameter(name, param)
         params.append(param)
 
-    return params
+    return params if len(params) > 0 else None
 
 def responses_for(apidoc):
 
@@ -328,20 +313,13 @@ def responses_for(apidoc):
         description = description or 'Success'
         headers = headers or {}
 
-        if code in responses:
-            responses[code].update(description=description)
-        else:
-            responses[code] = {'description': description}
-        if model is not None:
-            schema = serialize_schema(model)
-            responses[code]['schema'] = schema
-        responses[code] = attatch_headers(responses[code], global_headers, headers)
+        responses[code] = {'description': description}
 
-    if 'model' in apidoc:
-        code = str(apidoc.get('default_code', HTTPStatus.OK))
-        if code not in responses:
-            responses[code] = attatch_headers({'description': 'Success'}, global_headers, {})
-        responses[code]['schema'] = serialize_schema(apidoc['model'])
+        if model is not None:
+            schema = ref(model)
+            responses[code]['schema'] = schema
+
+        responses[code] = attatch_headers(responses[code], global_headers, headers)
 
     return responses
 
@@ -360,39 +338,11 @@ def serialize_definitions(registered_models):
         for name, model in registered_models.items()
     )
 
-def serialize_schema(model):
-
-    if isinstance(model, (list, tuple)):
-        model = model[0]
-        return {
-            'type': 'array',
-            'items': serialize_schema(model),
-        }
-
-    if isinstance(model, Model):
-        # register_model(model)
-        return ref(model)
-
-    if isinstance(model, str):
-        # register_model(model)
-        return ref(model)
-
-    if isclass(model) and issubclass(model, fields.Raw):
-        return serialize_schema(model())
-
-    if isinstance(model, fields.Raw):
-        return model.__schema__
-
-    if isinstance(model, (type, type(None))) and model in PY_TYPES:
-        return {'type': PY_TYPES[model]}
-
-    raise ValueError('Model {0} not registered'.format(model))
-
 def find_models(handlers):
     models = {}
     apidoc_list = [getattr(h, '__apidoc__') for h in handlers]
     for apidoc in apidoc_list:
-        for expect in apidoc.get('expect', []):
+        for expect, _ in apidoc.get('expect', []):
             if isinstance(expect, Model):
                 models[expect.name] = expect
         for _, (_, model, _) in apidoc.get('responses', {}).items():
@@ -401,28 +351,10 @@ def find_models(handlers):
     return models
 
 def security_for(apidoc):
-    security = None
-
-    if 'security' in apidoc:
-        auth = apidoc['security']
-        security = security_requirements(auth)
-
-    return security
+    security = apidoc.get('security', None)
+    return security if security is None else security_requirements(security)
 
 def security_requirements(value):
-    if isinstance(value, (list, tuple)):
-        return [security_requirement(v) for v in value]
-    if value:
-        requirement = security_requirement(value)
-        return [requirement] if requirement else None
-    return []
-
-def security_requirement(value):
-    if isinstance(value, (str)):
-        return {value: []}
-    if isinstance(value, dict):
-        return dict(
-            (k, v if isinstance(v, (list, tuple)) else [v])
-            for k, v in value.items()
-        )
-    return None
+    if not value:
+        return []
+    return [{value: []}]

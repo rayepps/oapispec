@@ -9,12 +9,22 @@
                         "description": "No permission -- see authorization schemes",
                         "schema": {
                             "$ref": "#/definitions/ProblemDetails"
+                        },
+                        "headers": {
+                            "X-Tracking-Token": {
+                                "type": "string"
+                            }
                         }
                     },
                     "201": {
                         "description": "Document created, URL follows",
                         "schema": {
                             "$ref": "#/definitions/User"
+                        },
+                        "headers": {
+                            "X-Tracking-Token": {
+                                "type": "string"
+                            }
                         }
                     }
                 },
@@ -51,6 +61,11 @@
                         }
                     }
                 ],
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ],
                 "tags": [
                     "User"
                 ]
@@ -73,40 +88,40 @@
                 "operationId": "get_users",
                 "parameters": [
                     {
-                        "name": "page_size",
-                        "in": "query",
-                        "type": "integer",
-                        "required": true,
-                        "default": 10
-                    },
-                    {
-                        "name": "page_number",
-                        "in": "query",
-                        "type": "integer",
-                        "required": true,
-                        "default": 1
-                    },
-                    {
-                        "name": "search_text",
-                        "in": "query",
-                        "type": "string"
-                    },
-                    {
-                        "name": "sort",
-                        "in": "query",
-                        "type": "string"
-                    },
-                    {
-                        "name": "refer",
                         "in": "query",
                         "type": "string",
-                        "format": "url"
+                        "format": "email",
+                        "name": "email"
                     },
                     {
-                        "name": "email",
                         "in": "query",
                         "type": "string",
-                        "format": "email"
+                        "format": "url",
+                        "name": "refer"
+                    },
+                    {
+                        "in": "query",
+                        "type": "string",
+                        "name": "sort"
+                    },
+                    {
+                        "in": "query",
+                        "type": "string",
+                        "name": "search_text"
+                    },
+                    {
+                        "in": "query",
+                        "type": "integer",
+                        "default": 1,
+                        "required": true,
+                        "name": "page_number"
+                    },
+                    {
+                        "in": "query",
+                        "type": "integer",
+                        "default": 10,
+                        "required": true,
+                        "name": "page_size"
                     }
                 ],
                 "tags": [
@@ -141,7 +156,38 @@
                 ],
                 "tags": [
                     "User"
-                ]
+                ],
+                "produces": [ "xml" ],
+                "deprecated": true
+            },
+            "put": {
+                "responses": {
+                    "401": {
+                        "description": "No permission -- see authorization schemes",
+                        "schema": {
+                            "$ref": "#/definitions/ProblemDetails"
+                        }
+                    },
+                    "200": {
+                        "description": "Request fulfilled, document follows",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                },
+                "operationId": "update_user",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "User"
+                ],
+                "x-swagger-ui-color": "black"
             }
         }
     },

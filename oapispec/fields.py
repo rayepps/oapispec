@@ -45,23 +45,8 @@ def nested(model, as_list=False, **kwargs):
     nested_name = getattr(model, 'resolved', model).name
     ref = { '$ref': f'#/definitions/{nested_name}' }
 
-    if as_list:
-        return create_schema(
-            type='array',
-            items=ref,
-            **kwargs)
-
-    # If there is already some properties in
-    # the schema (passed by the user)
-    has_custom_property = any(create_schema(type=None, **kwargs).schema().values())
-    if has_custom_property:
-        return create_schema(
-            type=None,
-            allOff=[*kwargs.get('allOf', []), ref],
-            **kwargs)
-
     return create_schema(
-        type=None,
+        type='array' if as_list else None,
         **ref,
         **kwargs)
 

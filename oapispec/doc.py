@@ -2,38 +2,20 @@
 functions __apidoc__ object. For example, when using `method('GET')`
 it will set the value of the functions method as 'get' on its __apidoc__'''
 
-import warnings
 from http import HTTPStatus
 
 from oapispec.core.utils import merge, not_none
 
 
-def doc(shortcut=None, **kwargs):
-    '''A decorator to add some api documentation to the decorated object'''
-    if isinstance(shortcut, str):
-        kwargs['id'] = shortcut
-    show = shortcut if isinstance(shortcut, bool) else True
-
+def doc(**kwargs):
+    '''A decorator to add documentation metadata to the decorated function'''
     def wrapper(documented):
         current_doc = getattr(documented, '__apidoc__', {})
         if 'name' not in current_doc:
             kwargs['name'] = documented.__name__
-        new_doc_kwargs = _build_doc(kwargs if show else False)
-        documented.__apidoc__ = merge(current_doc, new_doc_kwargs)
+        documented.__apidoc__ = merge(current_doc, kwargs)
         return documented
     return wrapper
-
-def unshortcut_params_description(data):
-    if 'params' in data:
-        for name, description in data['params'].items():
-            if isinstance(description, str):
-                data['params'][name] = {'description': description}
-
-def _build_doc(apidoc):
-    if apidoc is False:
-        return False
-    unshortcut_params_description(apidoc)
-    return apidoc
 
 def route(endpoint):
     '''
@@ -43,30 +25,36 @@ def route(endpoint):
 
 def hide(func):
     '''A decorator to hide a resource or a method from specifications'''
-    return doc(False)(func)
+    return doc()(func)
 
 def expect(model, description=None):
     '''
     A decorator to Specify the expected input model
 
-    :param ModelBase|Parse inputs: An expect model or request parser
+    :param ModelBase inputs: An expect model
     :param bool validate: whether to perform validation or not
 
     '''
     return doc(expect=[(model, description)])
 
-def param(name, description=None, _in='query', **kwargs):
+def param(name, type=str, location='query', description=None, format=None, required=False, default=None):
     '''
     A decorator to specify one of the expected parameters
 
     :param str name: the parameter name
     :param str description: a small description
-    :param str _in: the parameter location `(query|header|formData|body|cookie)`
+    :param str location: the parameter location `(query|header|formData|body|cookie)`
     '''
-    params = kwargs
-    params['in'] = _in
-    params['description'] = description
-    return doc(params={name: params})
+    return doc(params={
+        name: not_none({
+            'in': location,
+            'type': type,
+            'format': format,
+            'default': default,
+            'required': True if required else None,
+            'description': description
+        })
+    })
 
 def response(http_status: HTTPStatus, model=None, headers=None):
     '''

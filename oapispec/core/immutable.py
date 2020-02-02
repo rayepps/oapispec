@@ -42,8 +42,6 @@ class Immutable:
         formats in a dict like way
         """
         def deb(o):
-            # print('#### O ######')
-            # print(o)
             return getattr(o, '__dict__', 'DICT NOT FOUND')
         return json.dumps(self,
             default=deb,

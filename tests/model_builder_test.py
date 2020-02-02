@@ -11,14 +11,16 @@ from oapispec.core import model_builder
 
 def test_model_as_flat_dict():
 
-    @dataclass
+    # @dataclass
     class Person:
         age: int
         birthdate: date
         last_login: datetime
         name: str = 'bart'
+        is_active: bool = False
+        metadata: dict = {}
 
-    person = Person(23, 'july', None, name='greg')
+    # person = Person(23, 'july', None, name='greg')
 
     model = model_builder.build_model(Person)
 
@@ -38,6 +40,12 @@ def test_model_as_flat_dict():
             'last_login': {
                 'type': 'string',
                 'format': 'date-time'
+            },
+            'is_active': {
+                'type': 'boolean'
+            },
+            'metadata': {
+                'type': 'object'
             }
         },
         'type': 'object'
@@ -90,3 +98,31 @@ def test_model_as_nested_dict():
         },
         'type': 'object'
     }
+
+
+def test_model_with_list():
+
+    class Person:
+        age: int
+        roles: List[str]
+
+    model = model_builder.build_model(Person)
+
+    result = model.__schema__
+    expected = {
+        'properties': {
+            'age': {
+                'type': 'integer'
+            },
+            'roles': {
+                'type': 'array'
+            }
+        },
+        'type': 'object'
+    }
+
+    utils.diff(result, expected)
+
+    # TODO: As dev goes on for the model builder
+    # we will add actual test for list building
+    # assert result == expected

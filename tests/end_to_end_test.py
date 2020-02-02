@@ -48,19 +48,12 @@ paged_user_model = oapi.model.Model('PagedUserList', {
     'users': oapi.fields.array(oapi.fields.nested(user_model))
 })
 
-search_arg_parser = oapi.parser()
-search_arg_parser.add_argument('page_size', type=int, default=10, required=True, location='args')
-search_arg_parser.add_argument('page_number', type=int, default=1, required=True, location='args')
-search_arg_parser.add_argument('search_text', type=str, location='args')
-search_arg_parser.add_argument('sort', type=str, location='args')
-search_arg_parser.add_argument('refer', type=inputs.url(), location='args')
-search_arg_parser.add_argument('email', type=inputs.email(), location='args')
-
 @oapi.doc.namespace('Health Check')
 @oapi.doc.route('/ping')
 @oapi.doc.method('GET')
 @oapi.doc.response(HTTPStatus.CREATED, user_model)
 @oapi.doc.response(HTTPStatus.UNAUTHORIZED, problem_details_model)
+@oapi.doc.header('X-Tracking-Token')
 def ping():
     pass
 
@@ -70,6 +63,7 @@ def ping():
 @oapi.doc.response(HTTPStatus.CREATED, user_model)
 @oapi.doc.response(HTTPStatus.UNAUTHORIZED, problem_details_model)
 @oapi.doc.expect(user_model)
+@oapi.doc.doc(security='apiKey')
 def add_user():
     pass
 
@@ -78,8 +72,12 @@ def add_user():
 @oapi.doc.method('GET')
 @oapi.doc.response(HTTPStatus.OK, paged_user_model)
 @oapi.doc.response(HTTPStatus.UNAUTHORIZED, problem_details_model)
-@oapi.doc.expect(search_arg_parser)
-@oapi.doc.doc(args=search_arg_parser)
+@oapi.doc.param('page_size', type=int, default=10, required=True, location='query')
+@oapi.doc.param('page_number', type=int, default=1, required=True, location='query')
+@oapi.doc.param('search_text', type=str, location='query')
+@oapi.doc.param('sort', type=str, location='query')
+@oapi.doc.param('refer', type=str, format='url', location='query')
+@oapi.doc.param('email', type=str, format='email', location='query')
 def get_users():
     pass
 
@@ -88,14 +86,31 @@ def get_users():
 @oapi.doc.method('GET')
 @oapi.doc.response(HTTPStatus.OK, user_model)
 @oapi.doc.response(HTTPStatus.UNAUTHORIZED, problem_details_model)
+@oapi.doc.produces('xml')
+@oapi.doc.deprecated
 def find_user():
     pass
+
+@oapi.doc.namespace('User')
+@oapi.doc.route('/user/<str:user_id>')
+@oapi.doc.method('PUT')
+@oapi.doc.response(HTTPStatus.OK, user_model)
+@oapi.doc.response(HTTPStatus.UNAUTHORIZED, problem_details_model)
+@oapi.doc.vendor({ 'swagger-ui-color': 'black' })
+def update_user():
+    pass
+
+@oapi.doc.hide
+def grant_admin():
+    pass
+
 
 full_schema = schema\
     .register(ping)\
     .register(add_user)\
     .register(get_users)\
-    .register(find_user)
+    .register(find_user)\
+    .register(update_user)
 
 
 def test_full_spec_generation():
@@ -108,6 +123,7 @@ def test_full_spec_generation():
     utils.diff(result, expected)
 
     assert result == expected
+
 
 def test_full_spec_validation():
     '''Uses the swagger-cli command line tool to check that the output

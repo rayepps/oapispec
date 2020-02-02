@@ -122,5 +122,28 @@ def test_expected_params():
 
     assert result == expected
 
+def test_get_operation_consumes():
+    mock_parameters = [{
+        'in': 'formData',
+        'type': 'file'
+    }]
+
+    result = openapi.get_operation_consumes(mock_parameters)
+    assert result == ['multipart/form-data']
+
+    mock_parameters = [{
+        'in': 'formData',
+        'type': 'other'
+    }]
+
+    result = openapi.get_operation_consumes(mock_parameters)
+    assert result == [
+        'application/x-www-form-urlencoded',
+        'multipart/form-data'
+    ]
+
+def test_parameters_for_throws_error_without_route():
+    with pytest.raises(ValueError):
+        openapi.parameters_for({})
 
 # Done

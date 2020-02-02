@@ -275,20 +275,21 @@ def test_inherit_from_instance():
 def test_inherit_from_class():
     parent = oapi.model.Model('Parent', {
         'name': oapi.fields.string(),
-        'age': oapi.fields.integer(),
+        'age': oapi.fields.integer()
     })
 
-    child = oapi.model.Model.inherit('Child', parent, {
-        'extra': oapi.fields.string(),
+    child = parent.inherit('Child', {
+        'extra': oapi.fields.string()
     })
 
     assert parent.__schema__ == {
         'properties': {
             'name': {'type': 'string'},
-            'age': {'type': 'integer'},
+            'age': {'type': 'integer'}
         },
         'type': 'object'
     }
+    print(child.__schema__)
     assert child.__schema__ == {
         'allOf': [
             {'$ref': '#/definitions/Parent'},
@@ -301,19 +302,21 @@ def test_inherit_from_class():
         ]
     }
 
-def test_inherit_from_class_from_multiple_parents():
+def test_inherit_from_multiple_parents():
     grand_parent = oapi.model.Model('GrandParent', {
-        'grand_parent': oapi.fields.string(),
+        'grand_parent': oapi.fields.string()
     })
 
-    parent = oapi.model.Model('Parent', {
+    parent = grand_parent.inherit('Parent', {
         'name': oapi.fields.string(),
-        'age': oapi.fields.integer(),
+        'age': oapi.fields.integer()
     })
 
-    child = oapi.model.Model.inherit('Child', grand_parent, parent, {
-        'extra': oapi.fields.string(),
+    child = parent.inherit('Child', {
+        'extra': oapi.fields.string()
     })
+
+    print(child.__schema__)
 
     assert child.__schema__ == {
         'allOf': [
@@ -328,29 +331,9 @@ def test_inherit_from_class_from_multiple_parents():
         ]
     }
 
-def test_inherit_from_instance_from_multiple_parents():
-    grand_parent = oapi.model.Model('GrandParent', {
-        'grand_parent': oapi.fields.string(),
+def test_model_str():
+    model = oapi.model.Model('Car', {
+        'color': oapi.fields.string()
     })
 
-    parent = oapi.model.Model('Parent', {
-        'name': oapi.fields.string(),
-        'age': oapi.fields.integer(),
-    })
-
-    child = grand_parent.inherit('Child', parent, {
-        'extra': oapi.fields.string(),
-    })
-
-    assert child.__schema__ == {
-        'allOf': [
-            {'$ref': '#/definitions/GrandParent'},
-            {'$ref': '#/definitions/Parent'},
-            {
-                'properties': {
-                    'extra': {'type': 'string'}
-                },
-                'type': 'object'
-            }
-        ]
-    }
+    result = str(model)

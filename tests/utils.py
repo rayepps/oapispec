@@ -9,9 +9,6 @@ def load_asset(name):
     with open(path) as f:
         return json.load(f)
 
-def load_expected_mock_schema_result():
-    return load_asset('expected_mock_schema_result.json')
-
 def load_expected_full_schema_result():
     return load_asset('expected_full_schema_result.json')
 
