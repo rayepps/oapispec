@@ -130,13 +130,10 @@ def test_full_spec_validation():
     spec passes as a valid open api specification'''
 
     result = full_schema.generate()
-    # utils.write_result('end_to_end', json.dumps(result, indent=4))
 
-    def rel_path(path):
-        '''Generates a relative path from the current directory'''
-        return os.path.join(os.path.dirname(__file__), f'{path}')
+    cmd_path = os.path.join(os.path.dirname(__file__), '../node_modules/.bin/swagger-cli')
 
-    cmd = ['swagger-cli', 'validate', rel_path('results/end_to_end.json')]
+    cmd = [cmd_path, 'validate', './tests/results/end_to_end.json']
     cmd_result = subprocess.check_output(cmd)
 
     assert 'is valid' in str(cmd_result)

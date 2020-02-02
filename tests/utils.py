@@ -12,15 +12,15 @@ def load_asset(name):
 def load_expected_full_schema_result():
     return load_asset('expected_full_schema_result.json')
 
-def _ensure_results_dir_exists():
-    directory = os.path.join(os.path.dirname(__file__), 'assets')
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+def _ensure_dir_exists(path: str):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
 
 def write_result(file_name, content, ext='json'):
-    _ensure_results_dir_exists()
 
     path = os.path.join(os.path.dirname(__file__), f'results/{file_name}.{ext}')
+
+    _ensure_dir_exists(path)
+
     with open(path, 'w+') as file:
         file.write(content)
 

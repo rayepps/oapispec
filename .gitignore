@@ -5,6 +5,8 @@ __pycache__/
 debug.json
 
 tests/results/
+tests/swagger-cli
+desired.json
 
 # C extensions
 *.so

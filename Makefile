@@ -1,10 +1,12 @@
 
 .PHONY: test
 test:
+	python -m pytest --version
 	PYTHONPATH=`pwd` python -m pytest --cov=oapispec --cov-report term:skip-covered --cov-fail-under=100 --cov-report html tests/ -vv
 
 .PHONY: lint
 lint:
+	pylint --version
 	pylint oapispec
 
 .PHONY: create-dist
@@ -30,4 +32,8 @@ install:
 	pip install -r requirements.txt
 	pip install -r requirements.dev.txt
 	pip install -r requirements.test.txt
-	npm install -g swagger-cli # <- used for testing the generated spec is valid in end_to_end tests
+
+.PHONY: setup-swagger-cli
+setup-swagger-cli:
+	npm install swagger-cli # <- used for testing the generated spec is valid in end_to_end tests
+	rm package-lock.json

@@ -1,5 +1,6 @@
 -r requirements.txt
 pytest
-pytest-cov
-pylint
+pytest-cov==2.8.1
+coverage==4.5.4
+pylint==2.4.4
 dictdiffer
