@@ -6,4 +6,3 @@ more-itertools==8.1.0
 pyrsistent==0.15.7
 pytz==2019.3
 Werkzeug==0.16.0
-zipp==2.0.0
