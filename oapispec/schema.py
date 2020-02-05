@@ -1,6 +1,7 @@
 
 from oapispec.core.openapi import OpenApi
 from oapispec.core.utils import immutable
+from oapispec.core.swagger import generate_swagger_ui
 
 
 def schema(handlers=None, metadata=None):
@@ -15,11 +16,18 @@ def schema(handlers=None, metadata=None):
     def generate():
         return OpenApi(metadata, handlers).as_dict()
 
+    def generate_ui(spec_url):
+        '''Generates the swagger-ui html file and returns the content
+        :param str spec_url: The url swagger-ui should use to load your valid OpenAPI spec. Ex. spec_url='http://myapp.io/swagger-spec.json'
+        '''
+        return generate_swagger_ui(spec_url, title=metadata.title)
+
     return immutable(dict(
         register=register,
         generate=generate,
         handlers=handlers,
-        metadata=metadata
+        metadata=metadata,
+        generate_ui=generate_ui
     ))
 
 

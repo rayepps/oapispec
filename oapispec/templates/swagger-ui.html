@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+
+    <link rel="stylesheet" type="text/css" href="{{asset_source}}/swagger-ui.css" >
+    <link rel="icon" type="image/png" href="{{asset_source}}/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="{{asset_source}}/favicon-16x16.png" sizes="16x16" />
+
+    <style>
+    html
+    {
+      box-sizing: border-box;
+      overflow: -moz-scrollbars-vertical;
+      overflow-y: scroll;
+    }
+    *,
+    *:before,
+    *:after
+    {
+      box-sizing: inherit;
+    }
+
+    body {
+      margin:0;
+      background: #fafafa;
+    }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="swagger-ui"></div>
+
+    <script src="{{asset_source}}/swagger-ui-bundle.js"></script>
+    <script src="{{asset_source}}/swagger-ui-standalone-preset.js"></script>
+
+    <script type="text/javascript">
+        window.onload = function() {
+
+          const templateConfig = {
+            url: "{{spec_url}}"
+          }
+
+          // Begin Swagger UI call region
+          const ui = SwaggerUIBundle({
+            url: templateConfig.url
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            presets: [
+              SwaggerUIBundle.presets.apis,
+              SwaggerUIStandalonePreset.slice(1) // No Topbar
+            ],
+            plugins: [
+              SwaggerUIBundle.plugins.DownloadUrl
+            ],
+            layout: "StandaloneLayout"
+          })
+          // End Swagger UI call region
+
+          window.ui = ui
+        }
+    </script>
+
+</body>
+</html>
