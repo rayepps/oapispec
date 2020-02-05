@@ -3,7 +3,7 @@ import pytest
 
 from tests import utils
 
-from oapispec import openapi
+from oapispec.core import openapi
 from oapispec.core.utils import immutable
 
 def make_mock_metadata(**overrides):

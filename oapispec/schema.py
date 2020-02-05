@@ -1,5 +1,5 @@
 
-from oapispec.openapi import OpenApi
+from oapispec.core.openapi import OpenApi
 from oapispec.core.utils import immutable
 
 
