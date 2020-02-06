@@ -6,7 +6,7 @@ from urllib.parse import quote
 from werkzeug.routing import parse_rule
 
 from oapispec.model import Model
-from oapispec.core.utils import merge, not_none, not_none_sorted
+from oapispec.core.utils import merge, not_none
 
 
 
@@ -56,7 +56,7 @@ def create_openapi_spec_dict(metadata, handlers):
     return not_none({
         'swagger': '2.0',
         'basePath': parse_base_path(metadata.base_path),
-        'paths': not_none_sorted(paths),
+        'paths': not_none(paths),
         'info': build_infos(metadata),
         'produces': metadata.representations,
         'consumes': ['application/json'],

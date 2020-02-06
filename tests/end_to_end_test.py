@@ -6,7 +6,6 @@ import pytest
 from tests import utils
 
 import oapispec as oapi
-from oapispec.core import inputs
 
 
 schema = oapi.schema(metadata=dict(
