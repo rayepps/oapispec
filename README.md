@@ -25,7 +25,7 @@ def ping():
 
 spec = schema.register(ping).generate()
 ```
-where spec equals *v below v*. Using `oapispec` you can add many more details to your spec.
+where spec equals *vvv below vvv*. Using `oapispec` you can add many more details to your spec.
 ```json
 {
     "swagger": "2.0",
