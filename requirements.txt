@@ -1,8 +1,2 @@
-aniso8601==8.0.0
-attrs==19.3.0
-importlib-metadata==1.4.0
+Werkzeug==0.16.1
 jsonschema==3.2.0
-more-itertools==8.1.0
-pyrsistent==0.15.7
-pytz==2019.3
-Werkzeug==0.16.0
