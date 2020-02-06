@@ -7,7 +7,7 @@ Use `PyPI` -> `oapispec` @ https://pypi.org/project/oapispec
 ## Getting Started
 
 In this example the `spec` resulted by generating the schema is a valid swagger dict/json spec that can be used in a swagger ui.
-```
+```py
 from http import HTTPStatus
 
 import oapispec as oapi
@@ -26,9 +26,9 @@ def ping():
 spec = schema.register(ping).generate()
 ```
 
-## Creating Models
+### Creating Models
 In this example we create a model and use it as an expected parameter to a `POST` request.
-```
+```py
 book_model = oapi.model.Model('Book', {
     'title': oapi.fields.String(required=True),
     'author': oapi.fields.String(required=True),
@@ -49,5 +49,8 @@ def add_book():
 spec = schema.register(add_book).generate()
 ```
 
-## Futher Examples
-The best place to look is the `end_to_end` test in [tests/end_to_end_test.py](https://github.com/rayepps/oapispec/blob/develop/tests/end_to_end_test.py). This is always kept up to date as a strong example and test of what is possible. Note that you can see the expected output of a generated schema in [tests/assets/expected_full_schema_result.json](https://github.com/rayepps/oapispec/blob/develop/tests/assets/expected_full_schema_result.json). This can give you an idea of how the individual doc decorators work - both on their own and together - to produce the open api spec.
+### Futher Examples
+The best place to look is the `end_to_end` test in [tests/end_to_end_test.py](https://github.com/rayepps/oapispec/blob/develop/tests/end_to_end_test.py). This is always kept up to date as a strong example and test of what is possible. Note that you can see the expected output of a generated schema in [tests/assets/expected_full_schema_result.json](https://github.com/rayepps/oapispec/blob/develop/tests/assets/expected_full_schema_result.json). This can give you an idea of how the doc decorators work - both on their own and together - to produce the open api spec.
+
+## Contributions & Issues
+Both are welcome and encouraged! For any problems your having add an issue in github. If your interested in contributing take a look at the [contributing doc](https://github.com/rayepps/oapispec/blob/develop/docs/CONTRIBUTING.md). If your interested in contributing you will probably want to know how to run/test/modify the project locally so checkout the [developing doc](https://github.com/rayepps/oapispec/blob/develop/docs/DEVELOPING.md)
