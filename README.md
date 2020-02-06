@@ -6,7 +6,7 @@ Use `PyPI` -> `oapispec` @ https://pypi.org/project/oapispec
 
 ## Getting Started
 
-In this example the `spec` resulted by generating the schema is a valid swagger dict/json spec that can be used in a swagger ui.
+In this very simplified example the `spec` resulted by generating the schema is a valid swagger dict/json spec that can be used in a swagger ui.
 ```py
 from http import HTTPStatus
 
@@ -25,17 +25,50 @@ def ping():
 
 spec = schema.register(ping).generate()
 ```
+where spec equals *v below v*. Using `oapispec` you can add many more details to your spec.
+```json
+{
+    "swagger": "2.0",
+    "basePath": "/",
+    "paths": {
+        "/ping": {
+            "get": {
+                "responses": {},
+                "operationId": "ping",
+                "tags": [
+                    "Health Check"
+                ]
+            }
+        }
+    },
+    "info": {
+        "title": "Super API",
+        "version": "4.2.0"
+    },
+    "produces": [
+        "application/json"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "tags": [
+        {
+            "name": "Health Check"
+        }
+    ]
+}
+
+```
 
 ### Creating Models
 In this example we create a model and use it as an expected parameter to a `POST` request.
 ```py
 book_model = oapi.model.Model('Book', {
-    'title': oapi.fields.String(required=True),
-    'author': oapi.fields.String(required=True),
-    'yearWritten': oapi.fields.String,
-    'genre': oapi.fields.String,
-    'edition': oapi.fields.Integer,
-    'isInPrint': oapi.fields.Boolean
+    'title': oapi.fields.string(required=True),
+    'author': oapi.fields.string(required=True),
+    'genre': oapi.fields.string(),
+    'edition': oapi.fields.integer(),
+    'isInPrint': oapi.fields.boolean()
 })
 
 @oapi.doc.namespace('Book')
