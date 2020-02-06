@@ -6,7 +6,7 @@ Use `PyPI` -> `oapispec` @ https://pypi.org/project/oapispec
 
 ## Getting Started
 
-In this example `mock_schema` is a `dict` that is a valid OpenAPI spec and can be written to a file as json.
+In this example the `spec` resulted by generating the schema is a valid swagger dict/json spec that can be used in a swagger ui.
 ```
 from http import HTTPStatus
 
@@ -23,10 +23,10 @@ schema = oapi.schema(metadata=dict(
 def ping():
     pass
 
-mock_schema = schema.register(ping)
+spec = schema.register(ping).generate()
 ```
 
-### Creating Models
+## Creating Models
 In this example we create a model and use it as an expected parameter to a `POST` request.
 ```
 book_model = oapi.model.Model('Book', {
@@ -46,10 +46,8 @@ book_model = oapi.model.Model('Book', {
 def add_book():
     pass
 
-mock_schema = schema.register(add_book)
+spec = schema.register(add_book).generate()
 ```
 
-
-## TODO
-- **Validate input data for... everything.** For example, validate well formed tag parameters when initializing a schema with metadata. Raise an exception if the given tag is not a string or a dict with a name property. Currently, there are exceptions be raised in the modules that build the spec. In order to get the best (and most testable)
-api lets find those points of useful validation and move them to locations where the client passes them. This way, we can raise useful info with the exception letting the client know what is wrong, why, and how to fix it.
+## Futher Examples
+The best place to look is the `end_to_end` test in [tests/end_to_end_test.py](https://github.com/rayepps/oapispec/blob/develop/tests/end_to_end_test.py). This is always kept up to date as a strong example and test of what is possible. Note that you can see the expected output of a generated schema in [tests/assets/expected_full_schema_result.json](https://github.com/rayepps/oapispec/blob/develop/tests/assets/expected_full_schema_result.json). This can give you an idea of how the individual doc decorators work - both on their own and together - to produce the open api spec.
