@@ -30,6 +30,12 @@ jobs:
         run: make lint
       - name: Test with pytest
         run: make test
+
+  check-version:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      python-version: 3.8
       - uses: rayepps/require-semvar-bump@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
