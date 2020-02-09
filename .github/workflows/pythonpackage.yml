@@ -12,21 +12,37 @@ jobs:
         python-version: [3.6, 3.7, 3.8]
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+      - uses: actions/checkout@v1
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Set up Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '10.x'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.test.txt
+          make setup-swagger-cli
+      - name: Lint
+        run: make lint
+      - name: Test with pytest
+        run: make test
+
+  test-deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        python-version: [3.8]
+    steps:
+    - name: Build package distribution 📦
+      run: make create-dist
+    - name: Publish distribution 📦 to Test PyPI
+      uses: pypa/gh-action-pypi-publish@master # 37e305e7413032d8422456179fee28fac7d25187
       with:
-        python-version: ${{ matrix.python-version }}
-    - name: Set up Node
-      uses: actions/setup-node@v1
-      with:
-        node-version: '10.x'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.test.txt
-        make setup-swagger-cli
-    - name: Lint
-      run: make lint
-    - name: Test with pytest
-      run: make test
+        user: __token__
+        password: ${{ secrets.test_pypi_token }}
+        repository_url: https://test.pypi.org/legacy
