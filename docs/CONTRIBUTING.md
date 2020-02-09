@@ -1,13 +1,11 @@
-Contributing
-============
+# Contributing
 
 OpenAPI Spec Builder (`oapispec`) is open-source and very open to contributions.
 
 If you're part of a corporation with an NDA, and you may require updating the license.
 See Updating Copyright below
 
-Submitting issues
------------------
+## Submitting issues
 
 Issues are contributions in a way so don't hesitate
 to submit reports.
@@ -21,8 +19,7 @@ Provide as much informations as possible to specify the issues:
 - ...
 
 
-Submitting patches (bugfix, features, ...)
-------------------------------------------
+## Submitting patches (bugfix, features, ...)
 
 If you want to contribute some code:
 
