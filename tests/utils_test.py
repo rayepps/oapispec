@@ -71,19 +71,6 @@ def test_merge_recursions_with_empty():
     }
     assert utils.merge(a, b) == b
 
-def test_no_transform():
-    assert utils.camel_to_dash('test') == 'test'
-
-@pytest.mark.parametrize('value,expected', [
-    ('aValue', 'a_value'),
-    ('aLongValue', 'a_long_value'),
-    ('Upper', 'upper'),
-    ('UpperCase', 'upper_case'),
-])
-
-def test_transform(value, expected):
-    assert utils.camel_to_dash(value) == expected
-
 def test_immutable_raises_when_set():
     obj = immutable(x=2, y=23)
 
