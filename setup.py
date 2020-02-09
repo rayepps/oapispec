@@ -1,6 +1,6 @@
 import setuptools
 
-VERSION='0.0.2'
+from oapispec.version import VERSION
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
