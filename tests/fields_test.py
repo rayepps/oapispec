@@ -4,7 +4,6 @@ from datetime import date, datetime
 from decimal import Decimal
 from functools import partial
 
-import pytz
 import pytest
 
 from oapispec import fields
