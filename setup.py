@@ -40,7 +40,6 @@ setuptools.setup(
         'pyrsistent',
         'pytz',
         'six',
-        'Werkzeug',
-        'zipp'
+        'Werkzeug'
     ]
 )
