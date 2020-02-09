@@ -35,6 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 1
+    steps:
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1
         with:
