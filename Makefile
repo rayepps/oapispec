@@ -11,11 +11,20 @@ lint:
 
 .PHONY: create-dist
 create-dist:
-	python setup.py sdist
+	python3 setup.py sdist
 
 .PHONY: upload-dist
 upload-dist:
-	twine upload dist/*
+	TWINE_USERNAME="__token__" \
+  TWINE_PASSWORD="${token}" \
+	twine upload --verbose dist/*
+
+.PHONY: test-upload-dist
+test-upload-dist:
+	TWINE_USERNAME="__token__" \
+  TWINE_PASSWORD="${token}" \
+  TWINE_REPOSITORY_URL="https://test.pypi.org/legacy/" \
+  twine upload --verbose dist/*
 
 .PHONY: check
 check: lint test

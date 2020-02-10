@@ -14,7 +14,6 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/rayepps/oapispec',
-    download_url=f'https://github.com/rayepps/oapispec/archive/{VERSION}.tar.gz',
     packages=[
         'oapispec',
         'oapispec.core'
