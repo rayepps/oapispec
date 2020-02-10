@@ -12,7 +12,6 @@ lint:
 .PHONY: create-dist
 create-dist:
 	python3 setup.py sdist
-	python3 setup.py bdist_wheel
 
 .PHONY: upload-dist
 upload-dist:
