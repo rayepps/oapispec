@@ -41,7 +41,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '10.x'
-      - uses: rayepps/require-semvar-bump@v1
+      - uses: rayepps/require-semver-bump@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
