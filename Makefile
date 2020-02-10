@@ -23,7 +23,7 @@ upload-dist:
 test-upload-dist:
 	TWINE_USERNAME="__token__" \
   TWINE_PASSWORD="${token}" \
-  TWINE_REPOSITORY_URL="https://test.pypi.org/legacy" \
+  TWINE_REPOSITORY_URL="https://test.pypi.org/legacy/" \
   twine upload dist/*
 
 .PHONY: check
