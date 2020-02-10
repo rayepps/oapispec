@@ -44,6 +44,9 @@ jobs:
       - uses: rayepps/require-semver-bump@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          version-regex-pattern: >
+            VERSION = [\\'\\"](.+?)[\\'\\"]
+          version-file-path: 'version.py'
 
   upload-to-test-pypi:
     runs-on: ubuntu-latest
@@ -51,10 +54,8 @@ jobs:
       - uses: rayepps/require-push-to-pr@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install pep517
-        run: python -m pip install pep517 --user
       - name: Build a binary wheel and a source tarball
-        run: python -m pep517.build --source --binary --out-dir dist/
+        run: make create-dist
       - name: Publish distribution 📦 to Test PyPI
         uses: pypa/gh-action-pypi-publish@master # 37e305e7413032d8422456179fee28fac7d25187
         with:
