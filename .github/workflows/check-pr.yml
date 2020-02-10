@@ -20,7 +20,7 @@ jobs:
           version-regex-pattern: >
             VERSION = [\\'\\"](.+?)[\\'\\"]
           version-file-path: 'version.py'
-  upload-to-test-pypi:
+  publish-to-test-pypi:
     runs-on: ubuntu-latest
     steps:
       - uses: rayepps/require-push-to-pr@v1
