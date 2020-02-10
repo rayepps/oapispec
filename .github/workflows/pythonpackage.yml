@@ -66,8 +66,5 @@ jobs:
       - name: Build a binary wheel and a source tarball
         run: make create-dist
       - name: Publish distribution 📦 to Test PyPI
-        uses: pypa/gh-action-pypi-publish@master # 37e305e7413032d8422456179fee28fac7d25187
-        with:
-          user: __token__
-          password: ${{ secrets.test_pypi_token }}
-          repository_url: https://test.pypi.org/legacy
+        run: >
+          make test-upload-dist token=${{ secrets.test_pypi_token }}
