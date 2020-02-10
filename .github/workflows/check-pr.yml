@@ -23,9 +23,6 @@ jobs:
   publish-to-test-pypi:
     runs-on: ubuntu-latest
     steps:
-      - uses: rayepps/require-push-to-pr@v1
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v1
       - name: Set up Python 3.8
         uses: actions/setup-python@v1
@@ -37,6 +34,11 @@ jobs:
           pip install -r requirements.dev.txt
       - name: Build a binary wheel and a source tarball
         run: make create-dist
+      - uses: rayepps/require-push-to-pr@v1
+        id: 'require_push'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish distribution 📦 to Test PyPI
+        if: steps.require_push.outputs.pass == 'true'
         run: >
           make test-upload-dist token=${{ secrets.test_pypi_token }}
