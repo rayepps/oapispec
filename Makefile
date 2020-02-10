@@ -11,7 +11,7 @@ lint:
 
 .PHONY: create-dist
 create-dist:
-	python setup.py sdist
+	python3 setup.py sdist
 
 .PHONY: upload-dist
 upload-dist:
