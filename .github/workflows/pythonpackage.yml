@@ -54,6 +54,7 @@ jobs:
       - uses: rayepps/require-push-to-pr@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v1
       - name: Build a binary wheel and a source tarball
         run: make create-dist
       - name: Publish distribution 📦 to Test PyPI
