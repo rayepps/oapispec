@@ -19,7 +19,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           version-regex-pattern: >
             VERSION = [\\'\\"](.+?)[\\'\\"]
-          version-file-path: 'version.py'
+          version-file-path: 'oapispec/version.py'
   publish-to-test-pypi:
     runs-on: ubuntu-latest
     steps:
